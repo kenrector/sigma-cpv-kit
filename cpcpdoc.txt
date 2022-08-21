@@ -1,0 +1,395 @@
+                        These are the important parts of SIGMA.CFG I used.
+                        Even some of this is unimportant, but I left it 
+                        anyway.
+
+LPT1,378,7,0
+TYA01 con:
+LPA02 lpout.lp
+*
+ALTF4,4,VT100
+ALTF10,10,DTMD
+ALTF12,1,Z-29
+*
+CRA03 c:\sigma\kgctest\sighcp
+MTA80 c:\sigma\cpcpnew\cpcp.mt
+MTA90 scratch.mt
+DPBF0 dpbf0.dp
+DPBF1 dpbf1.dp
+DPBF2 dpbf2.dp
+DPBF3 dpbf3.dp
+DPBFE scratch.dp
+** args for cocs are coc number (for write direct),interrupt locations,
+   number of lines  (all hex)
+MEA06 0,60,61,40
+MEA05,1,62,63,40
+
+                        These files are created during the boot process below.
+
+07/30/2006  09:06 PM        54,799,360 dpbf0.dp
+07/30/2006  09:06 PM        86,461,440 dpbf1.dp
+07/30/2006  08:16 PM                 0 dpbf2.dp
+07/30/2006  08:16 PM                 0 dpbf3.dp
+07/30/2006  08:04 PM                 0 scratch.dp
+07/30/2006  09:06 PM           289,599 lpout.lp
+
+                        SIGGY -B80  boot emulator thusly
+                        Tape CPCP was created Oct. 91 and has BeloBox support
+                        
+ENTER ANY OF:
+I=TTY I/O
+P=LP OUTPUT
+F=TAPE FILES
+T=TAPE PATCHES
+C=CARD PATCHES
+D=XDELTA
+FTP                                     these FTP options are input
+                                        the date and time below were
+                                        forced in by patches
+DATE(07/30/06)=
+TIME(20:19)=
+
+                                Lots of TY output lost here----
+                                Not clear why it came here.        
+
+4: < CPCJ NEEDS BSIZE OF 29*512, BUT NO PROBLEM WITH CODE  KGC 87/10/01
+
+4: :GENMD,STATS +B12E,6800B133 . B INSTEAD OF BLE          KGC 87/10/01
+
+4: !
+
+4: ***    3 GENMD ERRORS DETECTED
+4: ***    3 GENMD ERRORS DETECTED
+4: NUMBER OF USERS REDUCED TO 121
+                         !!BAD COC - MEA0D
+
+                       no problem with bad coc---just missing hardware.
+                       What concerns me is did GJOB PATCHIT run?
+                       I think not since I had backspace problems while
+                       editing the file.  This could explain my crashes
+                       since it has some important patches.  PATCHIT
+                       was a ghost we invented to allow dynamic patching.
+                       9DIAG ran many of the Sigma 9 CPU diagnostics
+                       every 5 hours or so.  There were some intermittants
+                       I was chasing.  Later I was able to use it to get
+                       test cases into Madhu's Java-based emulator.
+
+                       Output from user 6, the DAY ghost, is useful.
+                       DAY originated as a way to get the date on the TY listing.
+                       Later it became a catch all to start other ghosts
+                       and otherwise monitor things like noting restricted
+                       usage (ON 0 not ON 107), storage (granules, symboiont)
+                       Memory size, uptime, etc.
+
+4:
+4: *** NOTHING PARTITIONED
+4:  1
+8:              GJOB 9DIAG,:SYS ERR
+6:              ONLINE =   0
+6:              BATCH  =   8
+6:              MON, JUL 30,'06 C0F
+6:              GRANULES =  37264
+6:              SYMBIONT =  15390
+6:              ALDATA DA =XXXXXX
+6:              MEM SIZE  =  128K
+6:              UPTIME = 0:00:02:12
+20:22
+!ON 107
+
+                Note: to get the prompt above I hit F1 
+                      and entered the command shown.
+                Note: I also did a CONTROL C and in the emulator
+                -store 114a,0
+                -run
+                
+                This sets the first word of COD:HWL to zero
+                allowing a logon message without a break on lines 0-.1F
+                Later I changed this with ANLZ/DELTA to reduce the
+                stray lines setting in LOGON.
+                
+                We had laser printers (HP's) as serial lines and that
+                is what logged on first below.
+                
+                I then tried to log into :SYS but failed and that got logged.
+
+
+C: HP 1#00,HP,1 (CS)
+20:23
+20:24
+10: UNSUCCESSFUL LOGON ATTEMPT ON LINE 0A, ID: 10
+10: PASSWORD
+10: ?
+!GJOB PCL
+
+17:             PCL HERE
+COPY :USERS ON :USERSSV
+DEL :USERS
+
+20:25
+17:             .. 1 FILES DELETED, 3 GRANULES
+END
+
+                We switch here to screen ALT F10 where we log on to
+                :SYS LBE password.  LOGON knows if no :USERS file
+                exists to let "Larry, Billy, and Eddy" on and
+                use whatever password they specified.
+
+HI, TCP-V HERE - ANDREWS C0F
+20:24 JUL 30,'06 ON CSKC   USER# 16    LINE# A
+LOGON PLEASE:
+
+CHECK DC/MAILBOX
+
+
+                Cool.  That was why I used ALT F10 since I made 
+                that a system line so I don't have to frog
+                around to get .C0 privilege.
+
+!DELTA
+
+DELTA HERE
+.8C43/  TTBS,0  *.6  =  .C0000006
+!Q
+
+!ANLZ
+ANALYZE HERE
+<DELTA
+
+DELTA HERE
+;S
+
+                I think I changed this so you had to say
+                SUCK ON/OVER AA to save a core image.
+
+
+!SAVE AA
+QUIT?
+!Q
+
+!ANLZ
+ANALYZE HERE
+<DELTA
+
+DELTA HERE
+;S
+COD:HWL=  .114A
+COD:HWL/    .0  .FF0FFFFF
+;G
+<END
+
+!DI
+
+20:32 JUL 30,'06
+USERS = 010  ETMF = 001
+90% RESPONSE  < 2767 MSECS
+DISK = 00047   GRANULES
+
+                This is a multi-purpose processor we developed
+                whis allows you to look/manipulate symbionts.
+                When called as SPOOL or UNSPOOL it moved symbionts
+                to/from tape.
+                PACKP used a file called PACKSV to help keep the
+                operators from removing private packs which were
+                basically permanently mounted and thus wreaking havoc.
+
+!SPLIST
+<LOOK
+<
+
+PRIOR SYSID DEV FORM COPY  GRAN FICHE FCOPY
+  E   0008  LP         1      1
+-1
+0008:   9DIAG;:SYS    07/30/06    20:21
+
+     A603 LOAD MODULE DOES NOT EXIST
+    BY USER AT F WHICH CONTAINS 00000025
+
+USER'S PROGRAM STATUS DOUBLE WORD.
+         00C0000F  10000000
+             *........*
+
+USER'S GENERAL REGISTERS.
+         00000000  00000000  00000000  00000000    00000000  00000000  05F9C4C9
+ C1C74040    *.........................9DIAG  *
+         00000000  00000000  00000000  00000000    00000000  7AE2E8E2  40404040
+ 04900001    *....................:SYS    ....*
+
+
+
+PRIOR SYSID DEV FORM COPY  GRAN FICHE FCOPY
+  E   000A  LP         1      1
+-1
+000A:   PACKP;:SYS    07/30/06    20:21
+
+
+
+
+   NAMERR
+
+USER'S PROGRAM STATUS DOUBLE WORD.
+         50F0A413  00000000
+             *&0......*
+
+USER'S GENERAL REGISTERS.
+         00000000  00000003  00000000  00000000    00000000  00000000  05D7C1C3
+ D2D74040    *.........................PACKP  *
+         00F0A40E  00000000  0300A29C  00000000    00000000  7AE2E8E2  40404040
+ 04900001    *.0..................:SYS    ....*
+00000    00000008
+             *....*
+
+-
+                 *....*
+
+-DELETE
+
+PRIOR SYSID DEV FORM COPY  GRAN FICHE FCOPY
+  E   0017  LP         1      1
+-1
+0017:   PCL;:SYS    07/30/06    20:24
+
+COPY :USERS ON :USERSSV
+DEL :USERS
+END
+
+-DELETE
+-END
+                        I omitted here some work with SUPER after
+                        copying the saved :USERS back and then
+                        setting the password to account
+                        CALKINS,KEITH to something I might remember.
+                        The passwords are hashed so you can't look
+                        them up.
+!BASIC
+VER. C02
+                        omitted program input
+ 
+>LIST
+ 100 FOR I=1 TO 10
+ 150 PRINT I
+ 200 NEXT I
+>RUN
+20:40   JUL 30  RUNHAAA...
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+ 10
+ 
+     200 HALT
+>100 PRINT "HELLO WORLD!"
+>150
+>200
+>LIST
+ 100 PRINT "HELLO WORLD!"
+>RUN
+20:40   JUL 30  RUNHBAA...
+HELLO WORLD!
+
+     100 HALT
+>SYS
+
+                Omitted here program input.
+                This program has a problem---there is nothing
+                to tell it how many characters to print, but
+                without my batch manual I couldn't instantly fix it
+                so please don't submit it to the helloworld database.
+                I think what it needs is a (BTD,1),(SIZE,*4) and
+                a LB,4 B#BUF before the write.
+
+
+!EDIT SI:HELLO
+TELE-EDIT HERE
+*TY0-999
+   1.000          SYSTEM   SIG7
+   2.000          SYSTEM   BPM
+   3.000 *
+   3.100          REF      M:DO
+   3.200 *
+   4.000          CSECT    1
+   5.000 HELLO    M:WRITE  M:DO,(BUF,B#BUF)
+   6.000          M:EXIT
+   7.000 *
+   8.000 B#BUF    TEXTC    'HELLO WORLD!'
+   9.000          END      HELLO
+--EOF HIT AFTER 9.
+*END
+                             
+!AP SI:HELLO OVER BO:HELLO
+ TELEFILE ASSEMBLY PROGRAM
+ OPTIONS >
+ * NO UNDEFINED SYMBOLS
+ *    ERROR SEVERITY LEVEL: 0
+ * NO ERROR LINES
+
+!LYNX BO:HELLO OVER HELLO
+   * * ALLOCATION SUMMARY * *
+PROTECTION      LOCATION  HEX PAGES   DEC PAGES
+
+DATA (00)         A000           1           1
+PROCEDURE (01)    A400           1           1
+DCB (10)          A200           1           1
+
+                
+                        I forgot the . first so got: 
+                        A603 LOAD MODULE DOES NOT EXIST
+
+!HELLO.
+HELLO WORLD!
+
+!COPY F7:TEST TO ME
+     GOTO JAIL
+     STOP
+     END
+
+!FORT F7:TEST OVER BO:TEST
+ TELEFILE EXTENDED FORTRAN-IV
+ OPTIONS>
+      1.          GOTO JAIL
+                          |
+ WARNING: GO DIRECTLY. DO NOT PASS GO. DO NOT COLLECT 200 DOLLARS.
+      2.          STOP
+                |
+ WARNING: STATEMENT HAS NO LABEL AND CANNOT BE ACCESSED.
+      3.          END
+ NUMBER OF ERROR MESSAGES: 1
+ NUMBER OF STATEMENTS DELETED: 0
+ HIGHEST ERROR SEVERITY: 4 (NO MAJOR ERRORS)
+
+                I logged off :SYS and onto CALKINS a couple times.
+                The good thing was console output didn't force me
+                back to that screen so I could run CP-V unimpeded.
+!OFF
+
+CPU = .0017 CON= 00:02:45 INT = 25
+
+20:57
+20:58
+20:59
+27: UNABLE TO USE MASTER FILE FOR BILLING
+27: ERROR CODE = 03
+27: OFF 20:36
+30: CSKC#0A,CALKINS,KEITH
+21:00
+21:01
+21:02
+30: UNABLE TO USE MASTER FILE FOR BILLING
+30: ERROR CODE = 03
+30: OFF 20:59
+21:03
+!ZAP
+                This system is sick and won't reboot!
+                Patchit might be an answer, but I am not convinced.
+                A 79-00 is a stack overflow which tended to mean
+                hardware problem.  It clearly is a software bug.
+
+SOFTWARE CHECK  79-00
+ 07/30/06  21:03
+33 5543 USR CNTL T
+33 5375 PHY PG MAP
+
+DO YOU WANT DELTA (Y/N)                      
