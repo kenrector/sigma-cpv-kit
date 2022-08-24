@@ -21,3 +21,10 @@ Save a backup of the cpvswap file.
 
 You can boot CP-V from the swapper with the simh boot command, boot dpb0.  Each time you reboot you will need to do the on 107 keyin and dep 114a 0 command.
 
+Logon to one of the CP-V terminal lines with telnet.  The sigma.ini file includes mux attach options for the mux lines 0-5, 10 and a mux attach for port 4000.  If you telnet to port 4000 you will be connected to the next available line following line 5, but skipping line 10.  You should be greeted by the salutation,  
+
+HI, TCP-V HERE - ANDREWS C0F
+09:55 AUG 23,'80 ON WEST   USER# C     LINE# 6  
+LOGON PLEASE: 
+
+Telnet to one of the dedicated lines, 0-5, 10 will get you connected as a non-VT100 terminal.
