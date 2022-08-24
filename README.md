@@ -19,5 +19,5 @@ Shut down CPV with the ZAP keyin at the opeeator console.   Don't quit out of si
 
 Save a backup of the cpvswap file.
 
-You can boot CP-V from the swapper with the simh boot command, boot dpb0.
+You can boot CP-V from the swapper with the simh boot command, boot dpb0.  Each time you reboot you will need to do the on 107 keyin and dep 114a 0 command.
 
