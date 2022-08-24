@@ -14,3 +14,10 @@ After the PO tape installation finishes and reports information about MEM SIZE, 
 This system is configured with hardwired lines that recquire a BREAK key to start the LOGON process.  To avoid, this enter simh and enter DEP 114a 0 to store 00000000 in the hardwired line flags.
 
 The system includes a :USERS file with account names and logon passwords.  Follow Keiths instruction to run the PCL processor as a ghost job and backup and delete the :USRS file.  The system will allow a logon from :SYS,LBE without a password if there is no :USERS file.
+
+Shut down CPV with the ZAP keyin at the opeeator console.   Don't quit out of simh if you can help it.  
+
+Save a backup of the cpvswap file.
+
+You can boot CP-V from the swapper with the simh boot command, boot dpb0.
+
