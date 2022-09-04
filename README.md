@@ -1,13 +1,11 @@
 # sigma-cpv-kit
 Useful files to boot CP-V on the simh sigma simulator
 
-This repository includes a bootable PO tape and a sigma.ini file that can be used to boot the CP-V system on the simh sigma simulator.
+This repository includes a bootable system (PO) tape and a sigma.ini file that can be used to install CP-V using the simh sigma simulator.  The PO tape and cpcpdoc.txt files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  The CP-V system on the PO tape conforms to the Andrews University hardware and software configuration.
 
-The PO tape and cpcpdoc.txt files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.
+The included cpcpdoc.txt file is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  This procedure is similar to the simh installation.
 
-The cpcpdoc.txt file is a description of installing running CP-V from the PO tape using siggy, a dos based simulator written by Keith and George Plume in th 90's.  This may help someone new to CP-V to get started.  One sh
-
-The CP-V operator interface was activated by the INTERRUPT button  on the sigma front panel.  The INTERRUPT button is simulated in simh by entering the code 0x10 in the consle window.  On a Mac I installed the Unicode Hex Input keyboard and typed ALT-0010 to enter the 0x10 character.
+The CP-V operator interface is activated by the INTERRUPT button  on the sigma front panel.  The INTERRUPT button is simulated in simh by entering the code 0x10 in the consle window.  On a Mac I installed the Unicode Hex Input keyboard and typed OPTION-0010 to enter the 0x10 character.
 
 After the PO tape installation finishes and reports information about MEM SIZE, UP TIME, etc CPV is up and running but here are zero (0) online users allowed.  To allow user logon, activate the OC INTERRPUT with the ALT-0010 keyin and set the number of online users allowed to 107 with ON 107.
 
