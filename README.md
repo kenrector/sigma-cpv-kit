@@ -13,7 +13,7 @@ After the PO tape installation finishes CP-V reports information about MEM SIZE,
 
 This CP-V installation is configured with hardwired communication lines that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and enter DEP 114a 0 to store 00000000 in the hardwired line flags as described in cpcpdoc.txt.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect with telnet.
 
-The system includes a :USERS file with account names and logon passwords.  Follow Keiths instruction to run the PCL processor as a ghost job and backup and delete the :USRS file.  The system will allow a logon from :SYS,LBE without a password if there is no :USERS file.
+The system includes a :USERS file with account names and logon passwords.  Follow Keiths instruction to run the PCL processor as a ghost job and backup and delete the :USRS file.  The system will then allow a logon from :SYS,LBE without a password.
 
 Shut down CPV with the ZAP keyin at the opeeator console.   Don't quit out of simh while CP-V is up if you can help it.  
 
@@ -28,3 +28,5 @@ HI, TCP-V HERE - ANDREWS C0F
 LOGON PLEASE: 
 
 Telnet to one of the dedicated lines, 0-5, 10 will get you connected as a non-VT100 terminal.
+
+Check the Issues section of this repository for possible problems and work arounds.
