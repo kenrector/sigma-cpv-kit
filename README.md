@@ -6,9 +6,14 @@ This repository includes a bootable master system tape and a .ini file that can 
 
 ## Files
 cpcp.tap is a bootable CP-V PO tape that conforms to the Andrews University hardware and C00 release software configuration.
-cpcp.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the CP-V configuration.
+
+sigma.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration.
+
 cpcpdoc.txt file is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.  Experience with simh will be valuable.
+
 lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
+
+## Installation
 
 The CP-V Operator Console (OC) interface is activated by the INTERRUPT button  on the sigma front panel.  The INTERRUPT button is simulated in simh by entering the code 0x10 in the consle window.  On a Mac I installed the Unicode Hex Input keyboard and typed OPTION-0010 to enter the 0x10 character.
 
