@@ -56,7 +56,7 @@ Logons are enabled by the ON keyin at the Operator Console (OC).  Enter CTL-P at
 
 At the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.
 
-Open a window to serve as the user terminal interface and start the telnet application, or putty, or what have you.
+Open a window to serve as the user terminal interface and start the telnet application, or putty, or what have you.  Connect to localhost port 4000 or one of the other ports defined in the sigma.ini file.
 
 This CP-V installation is configured with hardwired communication lines that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal from the telnet application, enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and type DEP 114a 0 to store 00000000 in the hardwired line flags.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect.
 
