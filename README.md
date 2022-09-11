@@ -14,6 +14,19 @@ cpcpdoc.txt file is a description of installing and running CP-V using siggy, a 
 lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 
 ## Installation
+These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
+
+Boot from mt0
+
+The window running simh will become the CP-V Operator Console interface.
+
+Following the prompt for device assignment options, type FTPI.
+
+Type RET to ignore the next option request.
+
+CP-V will be quiet for a while and will then produce a lot of output including messages about BAD COC - MEA05 and MEA-0D.  Ignore these messages.
+
+Finally is a message about UPTIME = 0:00:xx:xx
 
 The CP-V Operator Console (OC) interface is activated by the INTERRUPT button  on the sigma front panel.  The INTERRUPT button is simulated in simh by entering the code 0x10 in the consle window.  On a Mac I installed the Unicode Hex Input keyboard and typed OPTION-0010 to enter the 0x10 character.
 
