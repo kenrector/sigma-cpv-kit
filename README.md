@@ -37,12 +37,19 @@ The OC interface is activated by the INTERRUPT button  on the Sigma front panel.
 The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USRS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with no password for :SYS.
 
 The PCL interchange will look like this:
+
 !GJOB PCL
+
 17:   PCL HERE
+
 COPY :USERS ON :USERSSV
+
 DEL :USERS
+
 17:   .. 1 FILES DELETED, 3 GRANULES
+
 END
+
 
 ### Logging on
 Logons are enabled by the ON keyin at the Operator Console (OC).  Enter CTL-P at the OC.
