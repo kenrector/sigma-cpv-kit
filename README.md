@@ -28,26 +28,55 @@ CP-V will be quiet for a while and will then produce a lot of output including m
 
 Finally is a message about UPTIME = 0:00:xx:xx
 
-The CP-V Operator Console (OC) interface is activated by the INTERRUPT button  on the sigma front panel.  The INTERRUPT button is simulated in simh by entering the code 0x10 in the consle window.  On a Mac I installed the Unicode Hex Input keyboard and typed OPTION-0010 to enter the 0x10 character.
+At this point CP-V is up, but no online users are allowed to login. This allows the operator to perform some tasks before users log on using the Operator Console (OC).
 
-After the PO tape installation finishes CP-V reports information about MEM SIZE, UP TIME, etc.  At this point CP-V is up and running but there are zero (0) online users allowed.  To allow user logon, activate the OC INTERRPUT and set the number of online users allowed to 107 by typing ON 107 as described in cpcpdoc.txt.
+### Operator Console Interface
+The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh on Mac OSX and Linux systems by entering CTL-P in the console window.  I don't know what to enter on Windows.
 
-This CP-V installation is configured with hardwired communication lines that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and enter DEP 114a 0 to store 00000000 in the hardwired line flags as described in cpcpdoc.txt.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect with telnet.
+### :SYS Password
+The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USRS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with no password for :SYS.
 
-The system includes a :USERS file with account names and logon passwords.  Follow Keiths instruction to run the PCL processor as a ghost job and backup and delete the :USRS file.  The system will then allow a logon from :SYS,LBE without a password.
+The PCL interchange will look like this:
+!GJOB PCL
+17:   PCL HERE
+COPY :USERS ON :USERSSV
+DEL :USERS
+17:   .. 1 FILES DELETED, 3 GRANULES
+END
 
-Shut down CPV with the ZAP keyin at the opeeator console.   Don't quit out of simh while CP-V is up if you can help it.  
+### Logging on
+Logons are enabled by the ON keyin at the Operator Console (OC).  Enter CTL-P at the OC.
 
-Save a backup of the cpvswap and cpvfiles files.  You can restore them if something goes wrong.
+At the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.
 
-You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the on 107 keyin and dep 114a 0 commands.
+Open a window to serve as the user terminal interface and start the telnet application, or putty, or what have you.
 
-Logon to one of the CP-V terminal lines with telnet.  The sigma.ini file includes mux attach options for the mux lines 0-5, 10 and a mux attach for port 4000.  If you telnet to port 4000 you will be connected to the next available line following line 5, but skipping line 10.  You should be greeted by the salutation,  
+This CP-V installation is configured with hardwired communication lines that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal from the telnet application, enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and type DEP 114a 0 to store 00000000 in the hardwired line flags.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect.
+
+The sigma.ini file includes mux attach options for the mux lines 0-5 and 10 and a mux attach for port 4000.  If you telnet to port 4000 you will be connected to the next available line following line 5, but skipping line 10.  You should be greeted by the salutation,  
 
 HI, TCP-V HERE - ANDREWS C0F
 09:55 AUG 23,'80 ON WEST   USER# C     LINE# 6  
 LOGON PLEASE: 
 
-Telnet to one of the dedicated lines, 0-5, 10 will get you connected as a non-VT100 terminal.
+Telnet to one of the dedicated lines, 0-5 or 10 will get you connected as a non-VT100 terminal.
 
+### boot from disc
+You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 keyin and dep 114a 0 commands.
+
+The :USERS file is that which was initialized above
+
+You will need to set the number of on line user safter each boot
+
+### Miscellanous
+You can find many helpful manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/
+
+Shut down CP-V with the ZAP keyin at the opeeator console.   Don't quit out of simh while CP-V is up if you can help it.  
+
+Save a backup of the cpvswap and cpvfiles files.  You can restore them if something goes wrong.
+
+### Issues
 Check the Issues section of this repository for possible problems and work arounds.
+
+### WIKI
+Check the WIKI section of this repository for more information.
