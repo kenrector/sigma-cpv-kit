@@ -5,7 +5,7 @@ Useful files to boot CP-V on the simh sigma simulator
 This repository includes a bootable master system tape and a .ini file that can be used to install and execute CP-V using the simh Sigma simulator.  The master system tape (PO) and other files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get this kit working.  
 
 ## Files
-cpcp.tap is a bootable CP-V PO tape that conforms to the Andrews University hardware and C00 release software configuration.
+cpcp.tap is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
 
 sigma.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration.
 
@@ -18,23 +18,25 @@ These instructions describe how to install CP-V from the cpcp.tap PO tape using 
 
 Boot from mt0
 
-The window running simh will become the CP-V Operator Console interface.
+The window running simh will present the CP-V Operator Console interface.
 
-Following the prompt for device assignment options, type FTPI.
+Following the prompt for media assignments, type FTPI.
+Following the query "C/LL/DC ASSIGN OK" type RET.
+Following the SENSE SWITCH settings type RET.
 
-Type RET to ignore the next option request.
+CP-V will report the number of patches and list them as they are appplied.
 
-CP-V will be quiet for a while and will then produce a lot of output including messages about BAD COC - MEA05 and MEA-0D.  Ignore these messages.
+CP-V will report the number of users and some other statistics ending with UPTIME = xx:xx:xx:xx
 
-Finally is a message about UPTIME = 0:00:xx:xx
+At this point CP-V is up, but no online or batch users are allowed to login. This allows the operator to perform some tasks as GHOST jobs using the Operator Console (OC) before users log on.
 
-At this point CP-V is up, but no online users are allowed to login. This allows the operator to perform some tasks before users log on using the Operator Console (OC).
+CP-V is now installed on the system swap file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
 
 ### Operator Console Interface
 The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh on Mac OSX and Linux systems by entering CTL-P in the console window.  I don't know what to enter on Windows.
 
 ### :SYS Password
-The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USRS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with no password for :SYS.
+The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USRS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.
 
 The PCL interchange will look like this:
 
@@ -52,9 +54,7 @@ END
 
 
 ### Logging on
-Logons are enabled by the ON keyin at the Operator Console (OC).  Enter CTL-P at the OC.
-
-At the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.
+Time share logons are enabled by the ON keyin at the Operator Console (OC).  Activate the OC with CTL-P and at the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.
 
 Open a window to serve as the user terminal interface and start the telnet application, or putty, or what have you.  Connect to localhost port 4000 or one of the other ports defined in the sigma.ini file.
 
@@ -71,14 +71,14 @@ Telnet to one of the dedicated lines, 0-5 or 10 will get you connected as a non-
 ### boot from disc
 You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 keyin and dep 114a 0 commands.
 
-The :USERS file is that which was initialized above
+The :USERS file is that which was initialized above.
 
 You will need to set the number of on line user safter each boot
 
 ### Miscellanous
-You can find many helpful manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/
+You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/
 
-Shut down CP-V with the ZAP keyin at the opeeator console.   Don't quit out of simh while CP-V is up if you can help it.  
+Shut down CP-V with the ZAP keyin at the operator console.   Don't quit out of simh while CP-V is up if you can help it.  
 
 Save a backup of the cpvswap and cpvfiles files.  You can restore them if something goes wrong.
 
