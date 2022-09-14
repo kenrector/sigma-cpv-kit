@@ -4,7 +4,7 @@ Useful files to boot CP-V on the simh sigma simulator
 ## Introduction
 This repository includes a bootable master system tape and a .ini file that can be used to install and execute CP-V using the simh Sigma simulator.  The master system tape (PO) and other files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get this kit working.  
 
-## Files
+##Files
 cpcp.tap is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
 
 sigma.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration.
@@ -13,7 +13,7 @@ cpcpdoc.txt file is a description of installing and running CP-V using siggy, a 
 
 lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 
-## Installation
+##Installation
 These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
 
 Boot from mt0
@@ -32,10 +32,10 @@ At this point CP-V is up, but no online or batch users are allowed to login. Thi
 
 CP-V is now installed on the system swap file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
 
-### Operator Console Interface
+##Operator Console Interface
 The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh on Mac OSX and Linux systems by entering CTL-P in the console window.  I don't know what to enter on Windows.
 
-### :SYS Password
+##:SYS Password
 The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USRS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.
 
 The PCL interchange will look like this:
@@ -53,7 +53,7 @@ DEL :USERS
 END
 
 
-### Logging on
+##Logging on
 Time share logons are enabled by the ON keyin at the Operator Console (OC).  Activate the OC with CTL-P and at the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.
 
 Open a window to serve as the user terminal interface and start the telnet application, or putty, or what have you.  Connect to localhost port 4000 or one of the other ports defined in the sigma.ini file.
@@ -68,22 +68,33 @@ LOGON PLEASE:
 
 Telnet to one of the dedicated lines, 0-5 or 10 will get you connected as a non-VT100 terminal.
 
-### boot from disc
+##Boot from disc
 You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 keyin and dep 114a 0 commands.
 
 The :USERS file is that which was initialized above.
 
 You will need to set the number of on line user safter each boot
 
-### Miscellanous
+##SUPER
+SUPER is the CP-V tool used to create and maintain user account parameters. The SUPER on the cpcp.tap PO tape is a modified version developed by Andrews University.
+
+It appears to me that SUPER requires the subject account being created or modified to have C0 privilege for batch mode. Set B$PRIV=C0 before completing the create or modify operation.
+
+Failure to do this will result in the error message
+
+BAD BILLING NUMBER IN RECORD
+
+when leaving the create or modify operation. If you get this message use CTL-Y to exit SUPER.
+
+##Miscellanous
 You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/
 
 Shut down CP-V with the ZAP keyin at the operator console.   Don't quit out of simh while CP-V is up if you can help it.  
 
 Save a backup of the cpvswap and cpvfiles files.  You can restore them if something goes wrong.
 
-### Issues
+##Issues
 Check the Issues section of this repository for possible problems and work arounds.
 
-### WIKI
+##WIKI
 Check the WIKI section of this repository for more information.
