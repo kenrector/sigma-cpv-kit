@@ -32,6 +32,8 @@ At this point CP-V is up, but no online or batch users are allowed to login. Thi
 
 CP-V is now installed on the system swap file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
 
+Not that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the proper date and time printed after than.
+
 ## Operator Console Interface
 The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh on Mac OSX and Linux systems by entering CTL-P in the console window.  I don't know what to enter on Windows.
 
@@ -69,11 +71,7 @@ LOGON PLEASE:
 Telnet to one of the dedicated lines, 0-5 or 10 will get you connected as a non-VT100 terminal.
 
 ## Boot from disc
-You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 keyin and dep 114a 0 commands.
-
-The :USERS file is that which was initialized above.
-
-You will need to set the number of on line user safter each boot
+You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 keyin.
 
 ## SUPER
 SUPER is the CP-V tool used to create and maintain user account parameters. The SUPER on the cpcp.tap PO tape is a modified version developed by Andrews University.
@@ -84,7 +82,7 @@ Failure to do this will result in the error message
 
 BAD BILLING NUMBER IN RECORD
 
-when leaving the create or modify operation. If you get this message use CTL-Y to exit SUPER.
+when leaving the create or modify operation. If you get this message set the privilege or use CTL-Y to exit SUPER.
 
 ## Miscellanous
 You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/
