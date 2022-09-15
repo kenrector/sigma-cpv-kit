@@ -13,6 +13,8 @@ cpcpdoc.txt file is a description of installing and running CP-V using siggy, a 
 
 lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 
+MTLU00.tap is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
+
 ## Installation
 These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
 
