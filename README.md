@@ -32,7 +32,7 @@ At this point CP-V is up, but no online or batch users are allowed to login. Thi
 
 CP-V is now installed on the system swap file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
 
-Not that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the proper date and time printed after than.
+Not that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the date and time will be printed after than.
 
 ## Operator Console Interface
 The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh on Mac OSX and Linux systems by entering CTL-P in the console window.  I don't know what to enter on Windows.
@@ -84,8 +84,16 @@ BAD BILLING NUMBER IN RECORD
 
 when leaving the create or modify operation. If you get this message set the privilege or use CTL-Y to exit SUPER.
 
+## Batch Jobs
+Set the number of batch jobs allowed to 6 with the ONB 6 keyin.
+
+## Symbionts
+CP-V sends printer output to the LP device through the Symbiont facility.  It may be necessary to enable the LP symbiont with the SLP,I operator keyin.  The SPLIST program LIST command will list the current symbiont jobs.
+
+The AU system defines a card reader (CRA03) connected to a symbiont device.  There is no simh card reader simulator so do not attempt to initialize the CR symbiont.  If you do the SCR,I keyin the system will respond with CRA03 NOT OPERATIONAL followed by repeated CRA03 PLEASE RESPOND messages.
+
 ## Miscellanous
-You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/
+You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/.
 
 Shut down CP-V with the ZAP keyin at the operator console.   Don't quit out of simh while CP-V is up if you can help it.  
 
