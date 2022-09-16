@@ -58,22 +58,20 @@ END
 
 
 ## Logging on
-Time share logons are enabled by the ON keyin at the Operator Console (OC).  Activate the OC with CTL-P and at the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.
+Time share logons are enabled by the ON keyin at the Operator Console (OC).  Activate the OC with CTL-P and at the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.  The number 107 is based on the amount of users supported by the swap device less the number of required ghost jobs started at system boot, (121 - 14). you can choose a lesser value.
 
-Open a window to serve as the user terminal interface and start the telnet application, or putty, or what have you.  Connect to localhost port 4000 or one of the other ports defined in the sigma.ini file.
+This CP-V installation is configured with COC lines 0-5 and 10 configured for particular types of terminals and printers.  The remaining lines are configured as VT-100 type terminals.  The sigma.ini file includes simh V4 attach commands that allow one to select which lines you will connect to based on port number. Simh V3 has a different method of selecting lines.
 
-This CP-V installation is configured with hardwired communication lines that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal from the telnet application, enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and type DEP 114a 0 to store 00000000 in the hardwired line flags.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect.
+The COC lines, except 0-5 and 10, are configured as hardwired connections that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal from the telnet application, enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and type DEP 114a 0 to store 00000000 in the hardwired line flags.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect.
 
-The sigma.ini file includes mux attach options for the mux lines 0-5 and 10 and a mux attach for port 4000.  If you telnet to port 4000 you will be connected to the next available line following line 5, but skipping line 10.  You should be greeted by the salutation,  
+Use telnet, putty or your favorite telnet client to connect to CP-V on port 4000 and send the break command.  You will be assigned to the next available line and receive the salutation;
 
 HI, TCP-V HERE - ANDREWS C0F
 09:55 AUG 23,'80 ON WEST   USER# C     LINE# 6  
 LOGON PLEASE: 
 
-Telnet to one of the dedicated lines, 0-5 or 10 will get you connected as a non-VT100 terminal.
-
 ## Boot from disc
-You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 keyin.
+You can boot CP-V from the swap disc with the simh boot command, boot dpb0.  Each time you reboot you will need to do the ON 107 and other setup keyins.
 
 ## SUPER
 SUPER is the CP-V tool used to create and maintain user account parameters. The SUPER on the cpcp.tap PO tape is a modified version developed by Andrews University.
