@@ -37,7 +37,7 @@ CP-V is now installed on the system swap file devices and may be restarted by bo
 Not that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the date and time will be printed after than.
 
 ## Operator Console Interface
-The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh on Mac OSX and Linux systems by entering CTL-P in the console window.  I don't know what to enter on Windows.
+The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh by entering CTL-P in the console window.
 
 ## :SYS Password
 The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USERS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.  You can create a password for :SYS,LBE later if you wish.
