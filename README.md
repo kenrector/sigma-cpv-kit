@@ -7,7 +7,7 @@ This repository includes a bootable master system tape and a .ini file that can 
 ## Files
 cpcp.tap is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
 
-sigma.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration.
+sigma.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
 
 cpcpdoc.txt file is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.  Experience with simh will be valuable.
 
