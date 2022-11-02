@@ -1,21 +1,36 @@
 
-From Keith Calkins, 7/22/22
+
 
 In response to my query about non-boot patches, patches that get applied after the sysem is up.  Following Keith's response is a copy of the patchit patches on system cpcp.tap.
 
+I don't know how this feature worked.  Assemble this and run it after boot?
+
+
+
 
 ****************************************************************************************
+From Keith Calkins, 7/22/22
 
-
-There should also be a PATCHCI file which would be compressed input which these SI updates modify in typical CP-V update style.  You can copy that via C PATCHCI(C) to LP(K) (I always like line numbers on my list listings, especially if "updates" are being applied! I see you were able to use ME for TY which I found interesting.  I would not have guessed that would work!)
+There should also be a PATCHCI file which would be compressed input which these SI updates modify in typical CP-V update style.  You can 
+copy that via C PATCHCI(C) to LP(K) (I always like line numbers on my list listings, especially if "updates" are being applied! I see 
+you were able to use ME for TY which I found interesting.  I would not have guessed that would work!)
 
 There should be 6 words, 3 double words, 1 double word of 64 bits for each COC at that hardwire location.
 
-We want to avoid SYSTEM A style COC since that had a non-standard COC (GSP COC) which used RDs for output... instead of I/O writes---it had no MIOP interface.
+We want to avoid SYSTEM A style COC since that had a non-standard COC (GSP COC) which used RDs for output... instead of I/O 
+writes---it had no MIOP interface.
 
-Any luck with the esc Q???  That would verify if it is a COC issue or a LOGON/ON 0/etc issue.  Are our COC interrupts working?  60/61 would be for the first COC, but if you are on the second it would be 62/63 and if you are on the second COC and don't have those interrupts enabled/implemented...  You can check if they are active by looking at the XPSD target location to see if something has been saved...  I'm thinking MEA05 was COC#0 and MEA06 was COC#1 (using the formal 0 indexing instead of informal 1 indexing).
+Any luck with the esc Q???  That would verify if it is a COC issue or a LOGON/ON 0/etc issue.  Are our COC interrupts working?  
+60/61 would be for the first COC, but if you are on the second it would be 62/63 and if you are on the second COC and don't have 
+those interrupts enabled/implemented...  You can check if they are active by looking at the XPSD target location to see if 
+something has been saved...  I'm thinking MEA05 was COC#0 and MEA06 was COC#1 (using the formal 0 indexing instead of informal 
+1 indexing).
 
-Are characters getting in...there is a COC ring buffer where data is supposed to come in one character at a time as halfwords, one byte is the character, the other byte the line number, one separate ring buffer for each COC.  I don't remember right off which is the "first" byte of the halfword, character/line number, but that would be documented in the COC manual.  I put "first" in quotes since I was rather upset to see simh try to define Sigma instruction format using non-Sigma bit numbering (big vs little Endian)---almost generated some updates to correct that---that is just wrong/confusing to do!
+Are characters getting in...there is a COC ring buffer where data is supposed to come in one character at a time as halfwords, 
+one byte is the character, the other byte the line number, one separate ring buffer for each COC.  I don't remember right off 
+which is the "first" byte of the halfword, character/line number, but that would be documented in the COC manual.  I put "first" 
+in quotes since I was rather upset to see simh try to define Sigma instruction format using non-Sigma bit numbering
+(big vs little Endian)---almost generated some updates to correct that---that is just wrong/confusing to do!
 
 
 ***************************************************************************************
