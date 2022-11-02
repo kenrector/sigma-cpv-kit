@@ -1,0 +1,1534 @@
+
+From Keith Calkins, 7/22/22
+
+In response to my query about non-boot patches, patches that get applied after the sysem is up.  Following Keith's response is a copy of the patchit patches on system cpcp.tap.
+
+
+****************************************************************************************
+
+
+There should also be a PATCHCI file which would be compressed input which these SI updates modify in typical CP-V update style.  You can copy that via C PATCHCI(C) to LP(K) (I always like line numbers on my list listings, especially if "updates" are being applied! I see you were able to use ME for TY which I found interesting.  I would not have guessed that would work!)
+
+There should be 6 words, 3 double words, 1 double word of 64 bits for each COC at that hardwire location.
+
+We want to avoid SYSTEM A style COC since that had a non-standard COC (GSP COC) which used RDs for output... instead of I/O writes---it had no MIOP interface.
+
+Any luck with the esc Q???  That would verify if it is a COC issue or a LOGON/ON 0/etc issue.  Are our COC interrupts working?  60/61 would be for the first COC, but if you are on the second it would be 62/63 and if you are on the second COC and don't have those interrupts enabled/implemented...  You can check if they are active by looking at the XPSD target location to see if something has been saved...  I'm thinking MEA05 was COC#0 and MEA06 was COC#1 (using the formal 0 indexing instead of informal 1 indexing).
+
+Are characters getting in...there is a COC ring buffer where data is supposed to come in one character at a time as halfwords, one byte is the character, the other byte the line number, one separate ring buffer for each COC.  I don't remember right off which is the "first" byte of the halfword, character/line number, but that would be documented in the COC manual.  I put "first" in quotes since I was rather upset to see simh try to define Sigma instruction format using non-Sigma bit numbering (big vs little Endian)---almost generated some updates to correct that---that is just wrong/confusing to do!
+
+
+***************************************************************************************
+
+PCL HERE
+<COPY PATCHCI(C) TO ME
+CPCO     SET      0        A/B      CPCN + 5.2MB,NO CP     04/91=>
+CPCP     SET      1        A/B      CPCO +3RD PUB,- 1.2MB  10/91=>
+*                                   KEEP LINE NUMBERS (IOCOUNT)
+         ASECT
+      DO1         CPCO
+         LOC      X'27D2'+578       MPATCH+578
+      DO1         CPCP
+         LOC      X'28DE'+578       MPACH+578
+PATCHLOC EQU      $
+*                                   **********************************
+HANDLERS EQU      X'8E00'           THESE MUST BE SET BY HAND
+SPECHK   EQU      X'8EDC'           AS THEY ARE IN UMOV
+*
+A        SET      X'A'              SIGMA 9 SINCE 12/85
+B        SET      X'B'              SIGMA 9 SINCE 12/84
+C        SET      X'C'              SIGMA 9 SINCE 05/86
+*
+SYSTEM   SET      A                 "ACADEMIC"
+*SYSTEM  SET      B                 "ADMINISTRATIVE" AND EXTERNAL
+*SYSTEM  SET      C                 MAINTENANCE AND DEVELOPMENT
+* SEE BELOW NSCOC/COMSYS
+*
+POTAPE   SET      0                 SET TO 1 FOR PO TAPE VERSION
+AUTOBAUD SET      0                 EXCLUDE OBS AUTOBAUD MODEM CODE
+*                                   INCLUDES NSCOC BUT SETS COC TYPE
+         DO1      POTAPE
+SYSTEM   SET      A
+NSCOC    SET      0                 INCLUDE GSP COC SUPPORT
+      DO1         SYSTEM=A
+NSCOC    SET      1                 DO ONLY IF ON SYSTEM A
+*
+COMSYS   SET      3                 3 FOR SYSTEM AC/AB
+      DO1         SYSTEM=B
+COMSYS   SET      2                 2 FOR SYSTEM AB - HIGHER INTERRUPTS
+         PAGE
+         CSECT    0
+         SYSTEM   SIG7
+         SYSTEM   BPM
+         SYSTEM   UTS               FOR LOAD/STORE
+STARTPATCH CNAME
+         PROC
+HERE     SET      $
+ADDRESS  CSECT    0
+         DATA     0
+DMASKS   CSECT    0
+         DATA     0
+         USECT    HERE
+MASKFLG  SET      0
+MASKCOUNT SET     0
+         PEND
+PATCHAT  CNAME
+         PROC
+DELTA    SET      $-HERE
+HERE     SET      $
+LAST     SET      AF
+      DO          DELTA
+MASKCOUNT SET     MASKCOUNT+1
+         USECT    ADDRESS
+         DATA     LAST(1)
+         USECT    DMASKS
+         DO1      NUM(AF)=1
+         DATA     -1
+      DO          NUM(AF)~=1
+         DATA     AF(2)
+         DO1      AF(2)~=-1
+MASKFLG  SET      1
+      FIN
+LAST(1)  SET      LAST(1)+1
+      FIN
+         USECT    HERE
+         PEND
+         PAGE
+         REF      F:BD
+*
+         REF      WRTF,RDF,TIME,T:RCE,JX:CMAP,JBUPVP,CBB5,CLRBBUF
+         REF      CPOS,MODE4,MODE2,MODE4INIT,MXFPL,MODE3
+         REF      TTYOUT,SSTD,SSTDLC,SAPL,SAPLLC
+         REF      MPATCH,MODE,MODE5,COD:HWL
+         REF      SL:BPRIO,SL:RATOR,SL:AIRM,SL:RAMR,SH:RBSUM
+         REF      MM,NEWQ,MSG3
+         REF      SL:ETS,SL:EPS
+         REF      YFFFF,DISCCU,Y08,Y04,Y02
+         REF      DCTSIZ,DCT1,DCT2,DCT3,DCT4,DCT5,DCT8,DCT9
+         REF      DCT12,DCT16,DCT17,DCT18
+         REF      IOSCU,S:OUIS,S:OUAIS
+         REF      M3,M8,M6,MASKS,TABLES
+         REF      XF,M7
+         REF      IOQ,IOQ5,IOQ7,IOQ8,IOQ10
+         REF      COCOEL,COCIPL,COCIPC,COCOP,CO:OUTRS
+         REF      COC,COCTERM,COCITV,COCOTV,COCBUF,COCOC
+         REF      UH:FLG,PLB:USR,SCHED,C:IDLE,S:CLOCK4
+         REF      MX:PPUT,U:MISC,UB:PRIO
+         REF      LB:UN,LNOL,EOMTIME
+         REF      CH:DRT,DRTHEN,PM,SB:RQ
+         REF      S:FPPC,UB:PCT,UX:JIT,SB:SET:
+         REF      COD:LPC,CO:RCVON,CO:XDATA
+         REF      SAVCBD,SC1900
+         REF      RE:ENT,FILCFU
+         REF      RA,SYSVERS
+         REF      CSEHAND:,CSE$9:9
+         REF      T:GJOBSTRT,CO:AIL,UB:ACP,HGP
+         REF      PFSR:
+      DO1         0 CPCM                         RAD STUFF
+         REF      M:FREE#GRAN,M:SWAPD
+         REF      AVRTBLSIZ,ANSFLGS
+         REF      PRTCU,PRTOUT
+         REF      TB:MAX,TB:SZ,TB:FLGS,OB:BTX,OB:OTX,OB:GTX
+         REF      SH:LNM,SB:LTY,STB:TYP,SYMX,SNDDX
+         REF      SWAPIN,S:FPPH,JPPH,S:ISUN,UH:AJIT,JAJITVP,FPMC
+         REF      CO:RCVDOFF,COCOR,E:CUB,SL:UB,STOB,STOBO,UB:US
+         REF      WRTD,COOP,J:BASE,SCDEVTYP      XP STUFF
+         REF      KBTCU,Y4,POWROFF,ERRLOG
+         REF      :BIG
+         REF      SB:ROMX,SB:RODF,T:INITJOB,SB:SWP:
+         REF      NSPT,GRAN
+         REF      DISKAB
+         REF      IORT
+*                                                SYSTEM DEPENDANT
+*        REF      NB31TO0,TSTACK,X10,X80,X20
+*MAGTAPE EQU      X'92C8'           ** SYSGEN DEPENDENT TSIO
+*MAGTAPE EQU      X'9400'           ** SYSGEN DEPENDENT DPSIO+CRDOCU
+MAGTAPE  EQU      X'93AA'           ** SYSGEN DEPENDENT DPSIO,-CP
+*MTAP    EQU      X'907E'           ** SYSGEN DEPENDENT
+*MTAP    EQU      X'909E'           ** SYSGEN DEPENDENT CRDOCU
+MTAP     EQU      X'9048'           ** SYSGEN DEPENDENT DPSIO,-CP
+COMLIST  EQU      KBTCU+X'97'
+EXITIS   EQU      MAGTAPE+X'8B'
+EXITFOL  EQU      MAGTAPE+X'83'
+         REF      UMOVPTCH
+         PAGE
+         LIST,1   1
+START    M:OPEN   F:BD,(FILE,'MODE4INIT',':SYS'),(IN),;
+                  (ERR,BDERR),(ABN,BDERR)
+         M:READ   F:BD,(BUF,L00#03),(SIZE,156),;
+                  (BTD,0),(WAIT)
+         M:READ   F:BD,(BUF,CODHWL),(SIZE,024),;
+                  (BTD,0),(WAIT)
+         M:CLOSE  F:BD,(SAVE)
+BDERR    M:SYS
+         BCR,8    MONOK
+         M:TYPE   (MESS,NOPRIV)
+         M:EXIT
+NOPRIV   TEXTC    'INSUFFICIENT PRIVILEGE'
+MONOK    CI,10    NEWQ
+         BE       GOODMON
+         M:PRINT  (MESS,BADMON)
+         M:XXX
+BADMON   TEXTC    'PROGRAM LOADED WITH WRONG MONITOR'
+GOODMON  EQU,0    $
+         LI,3     LASTPTCH
+         CI,3     MX:PPUT+7+:BIG+:BIG+:BIG+:BIG+:BIG+:BIG+:BIG+:BIG
+         BL       SIZOK
+         M:PRINT  (MESS,TOOMNY)
+         M:XXX
+TOOMNY   TEXTC    'TOO MANY PATCHES FOR AVAILABLE PATCH SPACE'
+WTOPN    DATA     X'6D000027'       ENABLE
+         M:WAIT   0
+SIZOK    EQU,0    $
+         LH,1     X'2B'             GET SYSTEM DESIGNATION
+         AND,1    =X'F'             => A,B,C
+         CI,1     SYSTEM
+      DO          POTAPE=0
+         BE       SYSOK
+         M:PRINT  (MESS,WRNGSYS)
+         M:XXX
+WRNGSYS  TEXTC    'PATCHIT RUNNING ON WRONG SYSTEM'
+      FIN
+SYSOK    EQU,0    $
+         LI,10    -1
+         LI,11    -1
+         LI,12    -1
+         LI,13    -1
+         LI,14    -1
+         LI,15    -1
+         LCI      6
+         STM,10   X'1A'
+         CAL1,6   #GJOB0            9DIAG
+         CAL1,6   #GJOB1            LMMON
+         LI,1     15                ** SYSGEN DEPENDANT (PAGES TO MAP)
+         LI,2     X'8000'           FIRST REAL PAGE TO MAP
+         LI,3     X'18000'          WHERE TO PUT IT
+         M:FVP    *3                FREE THE PAGE
+         M:CVM    *2,*3             PUT IT IN THE MAP HERE
+         AI,2     X'200'
+         AI,3     X'200'            GET THE NEXT PAGE
+         BDR,1    $-4               GET ALL SEVEN PAGES
+         LI,5     MASKCOUNT
+         CI,5     BITCOUNT
+         BNE      ERROR
+         LI,3     PATCHCOUNT
+         DATA     X'6D000037'       DISABLE
+         LI,2     2
+         LB,2     SB:RQ,2           WAIT TIL NO OPEN CLOSE USERS
+         BNE      WTOPN
+         LW,2     PATCHES,3
+         STW,2    PATCH$-1,3
+         BDR,3    $-2
+*
+         LI,5     MASKCOUNT
+LDNXTP   LW,3     DMASKS,5
+         LW,2     PBITS,5
+         LW,6     ADDRESS,5
+         CI,6     X'8000'
+         BL       $+2               => NO NOT IN UMOV
+         AI,6     X'10000'          YES PATCH UMOV OR SUSPTERM+
+         STS,2    *6
+         BDR,5    LDNXTP            GO LOAD THE NEXT PATCH
+*
+         LI,5     LNOL-1            NUMBER OF LINES
+CHKLN    LB,3     LB:UN,5
+         BNE      NXTLN             CHECK IF ANYBODY IS HOME
+         LB,3     MODE4INIT,5
+         BNE      NXTLN             WAS IT AN AUTOBAUD LINE?
+         LH,3     EOMTIME,5
+         BNE      NXTLN
+         LB,3     MODE2,5
+         CI,3     X'20'             SPACE INSERTION???
+         BNE      NXTLN
+         OR,3     =X'80'            SET LOGGING OFF
+         STB,3    MODE2,5
+NXTLN    AI,5     -1
+         BGE      CHKLN
+         DATA     X'6C003002'       RESET COC INIT FLAG => INIT IT
+      DO          0         ENABLED 1/17/89 KGC (PERHAPS A LITTLE LATE)
+         DATA     X'6C003012'       THIS SEEMS APPROPRIATE-KGC 87/05/01
+      FIN
+      DO          POTAPE=1&NSCOC=1
+         LH,1     X'2B'             GET SYSTEM DESIGNATION
+         AND,1    =X'F'             => A,B,C
+         CI,1     X'A'              SYSTEM A
+         BE       $+2
+         STW,1    COC:TYPE          SET TO XEROX COC FOR SYSTEM B,C
+      FIN
+   DO             0
+         LI,3     X'BAD1'
+         MTW,0    M:FREE#GRAN+1
+         BG       NORAD
+RADLP    LI,3     X'BAD2'
+         DATA     X'4E0002F1'       TDV,0 X'2F1'
+         STCF     4
+         BCS,4    NORAD
+         BCR,8    GORAD             IF NOT SPINNING IGNORE
+         LI,1     1000
+         BDR,1    $
+         B        RADLP
+*
+*        WE'LL ASSUME THAT IT IS UNWRITE-PROTECTED!
+*
+      DO          SYSTEM=A
+GORAD    LI,1     X'520'            1/2 A RAD
+      ELSE
+GORAD    LI,1     X'A40'            FULL RAD
+      FIN
+         AWM,1    M:FREE#GRAN+1     ADD IT
+         LI,3     X'BEEF'
+   FIN
+NORAD    EQU,0    $
+         DATA     X'6D000027'       ENABLE
+         LI,1     X'C00'*(COMSYS&1)+X'300'*(0~=(COMSYS&2))
+*                                   FOR T64,T65 AND/OR T66,T67
+         DATA     X'6D101202'       WD,1 .1202
+      DO          0
+         CI,3     X'BEEF'
+         BE       RADOPEN
+         CI,3     X'BAD1'
+         BE       RADAOPEN
+         CI,3     X'BAD2'
+         BE       RADNOIO
+         M:XXX                      ABORT
+RADOPEN  M:TYPE   (MESS,#RADOPEN)
+         M:EXIT
+RADAOPEN M:TYPE   (MESS,#RADAOPEN)
+         M:EXIT
+RADNOIO  M:TYPE   (MESS,#RADNOIO)
+         M:SNAP   'CC IN R4',(0,0)
+         M:XXX
+#RADOPEN TEXTC    'SECOND RAD HAS BEEN OPENED'
+#RADAOPEN TEXTC   'SECOND RAD IS ALREADY OPEN'
+#RADNOIO TEXTC    'NO IO POSSIBLE TO SECOND RAD'
+      FIN
+EXIT     M:EXIT
+#GJOB0   DATA     X'06000000'
+         TEXTC    '9DIAG'
+#GJOB1   DATA     X'06000000'
+         TEXTC    'LMMON'
+ERROR    DATA     X'6D000027'       ENABLE     WE'RE IN TROUBLE ANYWAY
+         M:TYPE   (MESS,ERRMESS)
+         M:XXX
+ERRMESS  TEXTC    'ERROR IN PATCHES...   ABORTING'
+         PAGE
+PATCHES  EQU      $-1
+         LOC      PATCHLOC
+PATCH$   EQU,0    $
+         PAGE
+         LIST,0   1
+***********************************************************************
+*
+*        PATCHES TO COC ROUTINES
+*
+*                 GENERAL COC PATCHES
+*                                   CRT BS SP BS ON RUBOUT
+*                                   VARY OUTPUT BUFFERS BASED ON SPEED
+*                                   HARDWIRE TIMEOUT FEATURE
+*                                   7E-40,1B-00 CRASH FIX
+*
+***********************************************************************
+* COC+X'296'
+DMBS     LC       MODE4,2           RUBOUT ON SCREENS
+         BCR,8    COC+X'29A'
+         LI,5     8                 BACKSPACE
+         BAL,9    COC+X'617'
+         LI,5     ' '               SPACE
+         BAL,9    COC+X'617'
+         LI,5     8                 BACKSPACE
+         MTB,12   CPOS,2
+         B        COC+X'29B'
+* COC+X'54F'
+CALCBUF  LB,5     MODE4,2           VARY OUTPUT BLOCKED BASED ON SPEED
+         AND,5    M3                GET LINE SPEED
+         AI,5     6
+         MI,5     14
+         SW,9     5                 REPLACED INSTRUCTION
+         BLZ      COC+X'557'
+         B        COC+X'551'
+* COC+X'7BA'
+HWLOGOFF EQU,0    $
+         LB,6     LB:UN,7           ALLOW LOGON WITH OUT HARDWIRE
+         BE       HWLNRET
+         LB,6     MODE4INIT,7       CHECK IF AUTOBUAD
+         BE       HWLNRET           ALWAYS TIMEOUT PHONE LINES
+      DO          SYSTEM=B
+         LW,6     TIME              GET THE HOUR AND MINUTE
+         CW,6     STIME             06:30 AM (WAS 7 'TIL 4/02/87 KGC
+*                                             WAS 8 'TIL 4/16/86 KGC
+*                                   MODIFIED FOR BILL CASH,JIM MASSENA
+         BL       HWLGGO            BEFORE 06:30 SO TIMEOUT -FOR RWC)
+         CW,6     ETIME             17:29 (5:29 PM)
+*                 WAS 17:00 'TIL 7/30/86 (KEN R. ONLY ASKED FOR 1/2H)
+*                 WAS 18:00 'TIL 4/2/87 SEE ABOVE
+         BL       COC+X'7AF'        DONT TIMEOUT 06:30-17:29
+      FIN
+HWLGGO   LB,6     XLNLIST           HARDWIRED LINE TIMEOUT FEATURE
+         CB,7     XLNLIST,6         EXCEPTIONAL LINES
+         BE       COC+X'7AF'        RETURN AS IF HW OR SS2
+         BDR,6    $-2               CHECK ALL EXCEPTIONS
+HWLNRET  LB,6     LB:UN,7
+         B        COC+X'7BB'
+      DO          SYSTEM=B
+STIME    DATA     '0630'            06:30 AM
+ETIME    DATA     '1729'            17:29 ( 05:29 PM)
+      FIN
+*                                   ALWAYS PUT SYSTEM LINES AS FIRST 4!
+*                                   FOR ON 0 LOGGING ON PRIVILEGE
+      DO          SYSTEM=A
+XLNLIST  DATA     X'090A3506'       8 LINES      CSKC,CSCT,CSDH,
+         DATA     X'0E460B10'               CSRK,CSBB,SCDB,SCAM,
+         DATA     X'474D0000'               CSPC,CSSS
+      FIN
+*
+      DO          SYSTEM=B
+XLNLIST  DATA     X'0A192416'       10 LINES     CSKC,CSCT,HP 1,
+         DATA     X'28002648'               CSXB,CS00,DRBB,COLD,
+         DATA     X'45216F00'               COCM,CARM,BC 0
+      FIN
+*
+* COC+X'79C'
+STS1B    LB,11    UB:ACP,6          WE WILL NOT REPORT AN E:OFF EVENT
+         BNE      STS1B00           IF NO CMD PROCESSOR AND
+         LB,11    UB:PCT,6          PAGE CNT = 1[+:BIG]
+         CI,11    1+:BIG
+         BE       COC+X'7A0'        THIS SHOULD PREVENT RIDDLED CORE
+STS1B00  LI,6     X'E'              E:OFF      AND SC 1B-00'S ETC....
+         B        COC+X'79D'
+* COC+X'7C8'
+SETWAIT  BNE      COC+X'7A0'
+         LB,6     MODE4INIT,7
+         BNE      COC+X'7C9'
+         LI,6     4
+         STB,6    COCTERM,7
+         B        COC+X'7C9'
+*T:RCE+X'F'
+LOGSYS   LI,1     4+(SYSTEM=B)      4 SYSTEM LINES COME FIRST!!
+         CB,7     XLNLIST,1         ALLOW SYSTEM LINES ON WHEN ON 0
+         BE       T:RCE+X'12'       ONLY SYSTEM LINES
+         BDR,1    $-2
+         LW,1     S:OUIS            (REPLACED INSRUCTION)
+         B        T:RCE+X'10'
+      DO          0 CPCM
+*T:RCE+X'13'
+SHIFTSWAP EQU,0   $
+         LW,15    S:OUAIS           (REPLACED INSTRUCTION)
+         SLS,15   1                 DOUBLE IT SO 0 SWAP GRANULE LESS LIKELY
+         B        T:RCE+X'14'       RETURN
+      FIN
+         PAGE
+***********************************************************************
+*
+*        DIABLO 1200 BAUD PROTOCOL
+*                 DIN1200
+*                 D12BRK
+*                 DOUT1200
+*                 D12FC
+*
+***********************************************************************
+* COC+X'42'
+* 1200 BAUD DIABLO (ACK/ETX PROTOCOL) INPUT
+DIN1200  LI,7     COC+X'43'
+         BCR,8    $+2
+         LI,7     COC+X'1B'
+         LC       MODE3,2
+         BCS,4    XONXOFFINP
+         LC       MODE4,2
+         BCR,4    *7
+         CI,5     6                 IS IT ACK
+         BE       $+5
+         CI,5     X'86'             ACK W/ PARITY
+         BE       $+3
+         LC       MODE2,2
+         BCR,8    COC+X'43'         NOT AN ACK AND LINE CONNECTED
+DOOUT    LB,7     MODE5,2
+         AI,7     78
+         CI,7     156
+         BLE      $+2
+         LI,7     156
+         STB,7    MODE5,2
+         CI,7     78
+         BNE      COC+X'1B'         COUNTER UPDATED  ALL DONE WITH CHAR
+         LD,4     COD:LPC,3         CONVERT LOGICAL LINE TO PHYSICAL
+         LW,7     2
+         SW,7     4                 PHYS LINE #
+* NEW CODE TO OUTPUT CORRECT CHARACTER INSTEAD OF NULL AFTER XON OR ACK
+* THIS CODE DUPLICATES MUCH CODE IN COC (SEE COCOP IN COC LINE 1906)
+* BUT UNFORTUNATELY WE CANNOT BRANCH TO THOSE ROUTINES BECAUSE
+* THEY BRANCH TO PLACES APPROPIATE ONLY IF ENTERED FROM A COC OUTPUT
+* INTERRUPT AND WE ARE HERE SERVICING AN INPUT INTERRUPT
+         LB,11    COCOC,2           OUTPUT COUNT
+         BEZ      COC+X'1B'         NOTHING TO OUTPUT
+         LH,4     COCOR,2           OUTPUT REMOVAL POINTER
+         BEZ      DOOUT20           CHECK FOR LINE DISCONNECT
+* THAT MAY NOT BE NECESSARY HERE... BUT UNTIL MY PATCH SPACE RUNS LOW
+* I'LL LEAVE IT IN
+* ( I JUST GOT AN ACK OR XON... HOW CAN MY LINE BE OFF???)
+         LB,5     COCBUF,4          CHAR TO OUTPUT
+         MTB,-1   COCOC,2
+         AI,11    -2
+         BLZ      COC+X'3CF'        SCREECH 13
+         BEZ      DOOUT40           LAST CHARACTER SO RELEASE BUF
+         AI,4     1
+         CI,4     X'F'
+         BANZ     DOOUT50
+         AI,4     -1
+DOOUT40  BAL,6    COC+X'42A'        RELEASE THE BUFFER
+DOOUT50  STH,4    COCOR,2
+         LW,6     7                 PHYS LINE #
+         SLS,5    8
+         OR,6     5                 MERGE CHAR + LINE IN R6
+         EXU      CO:XDATA,3        TRANSMIT IT
+         CW,11    SL:UB             UNBLOCK USER TIME?
+         BNE      COC+X'1B'
+DOOUT54  LB,6     LB:UN,2           USER NUMBER
+         LB,6     UB:US,6           USER STATE
+         AI,6     -STOBO
+         BEZ      DOOUT57
+         AI,6     STOBO-STOB
+         BNEZ     COC+X'1B'         NOT STOB OR STOBO
+DOOUT57  LI,6     E:CUB
+         B        COC+X'6D'         REPORT EVENT
+DOOUT20  STB,4    COCOC,2           ZERO OUTPUT COUNT
+         LC       MODE2,2
+         BCR,8    COC+X'1B'         LINE NOT REPORTED OFF
+         EXU      CO:RCVDOFF,3      HANG UP LINE
+         EXU      CO:RCVON,3
+         B        DOOUT54           CHECK FOR UNBLOCK
+XONXOFFINP EQU    $
+         LC       MODE2,2
+         BCS,8    DOOUT             LINE-OFF FAKE AN X-ON
+         LI,7     X'7D'
+         AND,7    5
+         CI,7     X'11'             XON OR XOFF
+         BNE      COC+X'43'         NORMAL INPUT PROCESSING
+*XON OR XOFF HAS COME IN
+         CI,5     2
+         BAZ      DOOUT             IT WAS XON-START OUTPUT
+XOFF     LI,7     1
+         CB,7     MODE5,2
+         BGE      COC+X'1B'
+         STB,7    MODE5,2           SET FLAG XOFF HAS COME
+         B        COC+X'1B'
+* COC+X'801'
+* COC+X'38'
+D12BRK   LC       MODE4,2
+         BCR,4    COC+X'11C'
+         LI,7     156               RESET MODE5 COUNT
+         LB,5     MODE5,2           GET PREVIOUS COUNT
+         STB,7    MODE5,2
+         BNE      COC+X'11C'        WASNT DOWN TO ZERO
+         LD,5     COD:LPC,3         CONVERT LOGICAL TO PHYSICAL LINE
+         LCW,5    5
+         AW,5     2
+         XW,6     5                 (ARRG)
+         EXU      CO:XDATA,3        RESTART OUTPUT
+         XW,6     5
+         B        COC+X'11C'
+* COC+X'3AE'
+* 1200 BAUD DIABLO (ACK/ETX PROTOCOL) OUTPUT
+DOUT1200 BE       COC+X'3F1'        REPLACED INSTRUCTION
+         LC       MODE3,2
+         BCS,4    XONXOFFOUT        OUR SPECIAL MODE FOR ESC-P
+         LC       MODE4,2
+         BCR,4    COC+X'3AF'        NOT SPECIAL MODE
+         MTB,0    MODE5,2           CHECK REM OUTPUT COUNT
+         BLE      COC+X'3FB'        CLEAR SCANNER AND HOLD FOR NOW
+         MTB,-1   MODE5,2           DECREMENT COUNTER
+         BE       XMETX
+         LB,6     MODE5,2
+         LB,5     COCBUF,4
+         CI,6     81                ONE BUFFER REMAINING?
+         BGE      COC+X'3B0'
+         CI,6     78
+         BL       LBUFF
+         BE       XMETX
+CKESC    CI,5     X'1B'
+         BNE      COC+X'3B0'
+         AI,6     -3
+         BGZ      $+2
+         LI,6     0
+         STB,6    MODE5,2
+XMETX    LI,5     3                 XMIT AN ETX
+         B        COC+X'3D7'
+LBUFF    CI,6     3
+         BGE      COC+X'3B0'
+         B        CKESC
+XONXOFFOUT EQU    $
+         LB,5     MODE5,2
+         CI,5     1
+         BG       COC+X'3AF'        FLAG IN MODE5 SAYS NO XOFF-OUTPUT IT
+         LI,5     0
+         STB,5    MODE5,2           0 MEANS THERE IS OUTPUT WAITING
+         B        COC+X'3FB'        CLEAR SCANNER AND HOLD TIL XON COMES
+* COC+X'65C'
+D12FC    LC       MODE3,2
+         BCS,4    XONXOFFFC         XON-XOFF MODE IN EFFECT
+         LC       MODE4,2
+         BCR,4    COC+X'688'
+         MTB,0    MODE5,2           READY TO BLOCK?
+         BE       D12BF             BLOCK-- BUFFER CHARACTER
+         LI,4     -1                CONVERT LOGICAL TO PHYSICAL + COC
+         AI,4     1
+         CLM,2    COD:LPC,4
+         BCS,9    $-2
+         LD,6     COD:LPC,4
+         LCW,6    6
+         AW,6     2
+         MTB,-1   MODE5,2
+         LB,7     MODE5,2
+         BE       ETXB
+         CI,7     78
+         BE       ETXB
+         CI,5     X'1B'
+         BNE      COC+X'688'        SEND NORMAL
+         B        $+2               BUFFER THE CHAR
+ETXB     AI,6     X'300'            LINE # + ETX**8
+         EXU      CO:XDATA,4
+D12BF    MTB,1    COCOC,2
+         B        COC+X'663'
+XONXOFFFC EQU     $
+         LB,6     MODE5,2
+         CI,6     1
+         BG       COC+X'688'        NO XOFF SO OUTPUT THE CHARACTER
+         LI,6     0                 SO WE KNOW WE TRIED
+         STB,6    MODE5,2
+         B        D12BF             BUFFER THE CHARACTER
+*
+TERMTYPE LC       MODE4INIT,2       CHECK D12 BIT
+         BCS,4    COC+X'3F5'        RETURN WITHOUT RESETTING TYPE
+         STB,4    COCTERM,2         RESET TERM TYPE TO 0 (REPLACE INST)
+         B        COC+X'3F5'
+TERMTYPE1 LC      MODE4INIT,7       CHECK D12 BIT
+         BCS,4    COC+X'79C'        RETURN WITHOUT RESETTING TYPE
+         STB,11   COCTERM,7         RESET TERM TYPE TO 0 (REPLACE INST)
+         B        COC+X'79C'
+         PAGE
+***********************************************************************
+*
+*        GSP LIU SUPPORT AND AUTOBAUD
+*
+***********************************************************************
+* COC+X'7E3'
+CLR12    LI,4     -1                LOGICAL LINE TO PHYSICAL + COC
+*        GSP 8/3/89 AND 10/19/89, BUT COC TYPE CRASHES "1B-00" RIDDLED CORE
+*        STB,4    MODE5,7           ALLOW STOB ESC P TO OUTPUT
+         AI,4     1
+         CLM,7    COD:LPC,4
+         BCS,9    $-2
+         LD,13    COD:LPC,4
+         LCW,13   13
+         AW,13    7
+         XW,13    6
+         EXU      CO:XDATA,4
+         XW,13    6
+         B        COC+X'7E7'
+* COC+X'801'
+ONINIT   LB,6     MODE4INIT,2       GSP LIU LINE INITIALIZATION
+      DO          AUTOBAUD
+         BNE      MINT2+1
+         CI,4     COC+X'D2'         AUTOBAUD
+         BE       COC+X'1B'
+         LB,6     COCTERM,2
+         CI,6     3
+         BLE      MINT2
+         LI,6     X'2A'             300 BAUD
+         BAL,4    MINTSP-1
+         LB,6     MODE2,2
+         OR,6     X10
+         STB,6    MODE2,2
+         B        COC+X'7A0'
+MINT2    LB,6     MODE4,2
+      FIN
+         STB,6    MODE4,2
+MINTSP   SLS,6    13                LINE SPEED INFO
+         CI,4     COC+X'D2'         CALLED FROM BREAK?
+         BNE      $+2
+         LW,5     3                 GET COC # (FROM 3 IF FROM BREAK)
+         MTB,0    TYPE,5            CHECK IF VARIABLE SPEED ALLOWED
+         BE       0,4               VARIABLE SPEED ONLY AS PER TABLE
+         CI,6     X'E000'
+         BAZ      $+2               110 BAUD - 2 STOP BITS
+         AI,6     X'200'
+         AW,6     2                 NEEDS TO BE PHYSICAL LINE ON COC
+         AND,6    KGCTRASH          THIS IS THE QUICKEST WAY (KLUDGE)
+         EXU      COC:SPD,5         SET LINE SPEED
+         B        0,4
+KGCTRASH DATA     X'E23F'           SPEED BITS,STOP BIT,LINE # ONLY
+COC:SPD  DATA     X'6D603006'       SET LINE SPEED COC 0
+         DATA     X'6D603016'       SET LINE SPEED COC 1
+         DATA     X'6D603026'       SET LINE SPEED COC 2
+      DO1         SYSTEM=A
+TYPE     DATA     X'01010000'       VARIABLE SPEED ON COCS 0 AND 1
+      DO1         SYSTEM=B
+TYPE     DATA     X'01000000'       VARIABLE SPEED ON COC 0
+* COC+X'822'
+INITSPD  EQU,0    $
+         LD,4     COD:LPC,3         **** KGC 4/5/85 2ND COC ****
+         AW,4     7                 **** KGC 4/5/85 2ND COC ****
+         LB,6     MODE4,4           **** KGC 4/5/85 2ND COC ****
+         LW,2     4                 **** KGC 4/5/85 2ND COC ****
+         LW,5     3
+         BAL,4    MINTSP
+         LW,6     7                 REPLACED INSTRUCTION
+         B        COC+X'823'
+      DO          AUTOBAUD
+ASTS     DATA     X'067C0C7E'
+         DATA     X'66502A00'
+TERMS    DATA     X'00030003'
+         DATA     X'02030200'
+MODES    DATA     X'00282829'
+         DATA     X'292A2A00'
+* COC+X'14F'
+ASTERS   LB,4     ASTS              GSP LIU AUTOBAUD CALCULATION
+         CB,5     ASTS,4
+         BE       $+3
+         BDR,4    $-2
+         B        COC+X'1B'
+         LB,5     TERMS,4
+         STB,5    COCTERM,2
+         LB,5     MODES,4
+         STB,5    MODE4,2
+         LI,4     X'20'
+         STB,4    MODE2,2
+         B        COC+X'1B'
+      FIN
+* COC+X'794'
+TRONIFOFF BCS,1   COC+X'7BA'        REPLACE INSTRUCTION
+         BCR,2    COC+X'795'
+         XW,7     10                (ARRG)
+         EXU      CO:RCVON,5        TURN RECEIVER ON
+         XW,7     10
+         STW,2    COCIPL            SAVE AS PARITY ERROR
+         B        COC+X'795'
+         PAGE
+***********************************************************************
+*
+*        GSP COC SUPPORT
+*
+***********************************************************************
+* COC
+      DO          NSCOC
+*COC:TYPE DATA,1  X'10',X'10',0,0   COC TYPE (STANDARD OR NONSTANDARD)
+COC:TYPE DATA,1   X'10',0,0,0       COC TYPE (STANDARD OR NONSTANDARD)
+COC:RDC  DATA     X'6C503001'       RD,5 X'3001' READ CHAR COC 0
+         DATA     X'6C503011'       RD,5 X'3011' READ CHAR COC 1
+*COC:RDS DATA     X'6C003000'       RD,0 X'3000' CHECK SCANNER COC 0
+*        DATA     X'6C003010'       RD,0 X'3010' CHECK SCANNER COC 1
+COC:RDT  DATA     X'6C003006'       RD,0 X'3006' INITIALIZE COC 0
+         DATA     X'6C003016'       RD,0 X'3016' INITIALIZE COC 1
+COC:RDU  DATA     X'6C003004'       RD,0 X'3004' STATUS COC 0
+         DATA     X'6C003014'       RD,0 X'3014' STATUS COC 1
+GSPCOC   LC       COC:TYPE,3        IS COC STANDARD?
+         BCS,1    GSPCOC1           => NO, MUST BE GSPCOC
+         DATA     X'CDF0000F'       TIO,D4 *D4 (REPLACEMENT INSTR)
+         B        COC+X'1F'         RETURN
+GSPCOC1  EXU      COC:RDC,3         RD TO GET CHARACTER
+         BCS,2    COC+X'24'         NOT THIS COC
+         LW,7     6
+         SAS,7    -1
+         STH,5    *4,7
+         B        COC+X'2A'
+GSPCOCI  LC       COC:TYPE,3        IS THIS A STANDARD COC?
+         BCS,1    GSPCOC5           => NO, MUST BE A GSPCOC
+         DATA     X'CC000005'       SIO,0 *5 (REPLACEMENT INSTR)
+         B        COC+X'80D'        RETURN FOR STD COC
+GSPCOC5  LCI      0
+         EXU      COC:RDU,3         RD TO SEE IF THERE
+         B        COC+X'80E'        RETURN
+COCWDTO  AND,1    MASKS+X'26'       XFF00  GET JUST COC BITS
+         CI,1     X'3000'
+         BNE      *15               NOT COC
+         LB,1     TABLES+X'146'     CSED$PSD
+         AI,1     X'80'             SET CC1
+         STB,1    TABLES+X'146'     CSED$PSD
+         B        *15               RETURN WITH CC1 SET (REPLACEMENT)
+GSPCOCT  LC       COC:TYPE,5
+         BCS,1    GSPCOCS
+         DATA     X'4D0E0000'       TIO,0 0,7 (REPLACEMENT)
+         B        COC+X'78A'
+GSPCOCS  EXU      COC:RDU,5
+         BCS,8    COC+X'7CC'        COC NOT THERE
+         BCR,1    COC+X'78C'        OK
+         EXU      COC:RDT,5         INITIALIZE IT
+         B        COC+X'7CE'        GO FINISH INITIALIZATION
+DRBCSE   STW,15   TABLES+X'167'     CSED$LINK
+         LI,0     0                 REPLACEMENT
+         B        CSEHAND:+X'EF'
+*
+* COCOP+1
+COCERR   LW,2     7                 SAVE THE LINE #
+         EXU      CO:OUTRS,3        READ THE LINE # AGAIN
+         CW,2     7                 IS IT THE SAME?
+         BNE      COCERR1           => NO, GO RECORD IT
+         AND,7    M6                REPLACEMENT INSTRUCTION
+         B        COCOP+2           PROCEED
+COCERR1  MTW,1    COCIPC
+         STW,2    COCIPL
+         B        COCOP+X'61'
+      FIN
+         LIST     0
+* MM+X'A4'
+MMCHK    BG       MM+X'B3'          REPLACE PATCHED INSTRUCTION
+         CI,4     1                 FROM M:CVM?
+         BNE      MM+X'A5'          NO => GIVE IT TO 'EM
+         CI,8     X'30'             PRIV B0 OK
+         BGE      MM+X'A5'
+         CI,6     X'41'                          TOPROOT
+         BG       NOG
+         CI,8     X'20'+X'10'       ALLOW A0(B0) TO READ MONITOR
+         BGE      MM+X'A5'
+*        CI,6     3                 PAGE 3? -- CO:RING
+*        BE       NOG
+         CI,6     7                              PAGE 6+ -- COCBUF
+         BL       CKPV
+         CI,6     8                              PAGE 7+
+         BLE      NOG
+         CI,6     X'16'                          THIS PATCH?
+         BE       NOG
+CKPV     CI,8     X'10'+X'20'       PRIV 90(B0) NOT CERTAIN PAGES
+         BGE      MM+X'A5'
+         LW,4     MXFPL+1
+         CW,4     MMDAT
+         BE       NOG
+         LC       MXFPL+1
+         BCR,2    NOG
+         LI,4     6336
+         AH,4     MXFPL+5
+         BE       NOG+1
+         AI,4     1010782           WHERE?
+         BE       NOG+1
+NOG      LI,6     0                 GIVE 'EM PAGE 0
+         LI,4     1                 REPLACE CVM FLG
+         B        MM+X'A5'
+MMDAT    DATA     633652691
+         LIST     1
+*CLRBBUF+X'1A'
+PPCHK    EQU,0    $
+         LI,11    FPMC
+         LI,1     X'4A'
+         STORE,11 JX:CMAP,1
+         B        CBB5+X'F'
+* IOQ+X'4D4'
+KIIOP    CI,12    X'2000'           INTER-OP REQUESTED?
+         BAZ      KIIOP1            NO RESUME NORMAL HANDLING
+         LB,8     DCT5,1
+         OR,8     X20               SET INTEROP BIT
+         STB,8    DCT5,1
+KIIOP1   DATA     X'6D000027'       ENABLE
+         B        IOQ+X'4D5'
+         PAGE
+***********************************************************************
+*
+*        SCHED
+*
+***********************************************************************
+* SCHED+X'233',X'235',X'23C',X'246'
+BATIO    CI,15    X'100'            IS IT BATCH?
+         BAZ      SCHED+X'216'      NO GO TO STIOCC
+         B        SCHED+X'215'      GIVE BATCH IOC PRIORITY EQUAL TO OL
+* SCHED+X'182'
+NOBEX    BANZ     SCHED+X'44'       REPLACE INSTRUCTION
+         LC       X'8C48'           J:EXTENT
+         BCR,2    SCHED+X'183'      NOT IN EXIT CONTROL- ALLOW BREAKS
+         CI,15    X'40'             ALLOW DELTA EXITS
+         BAZ      SCHED+X'44'       IGNORE IF NOT DELTA
+         B        SCHED+X'183'      DELTA IN CONTROL - ALLOW BREAKS
+* SCHED+X'481'
+DSOPNCLS LH,5     UH:FLG,4
+         CI,5     8                 OPEN CLS USER
+         BANZ     SCHED+X'478'      YES -- DONT OUTSWAP HIM
+         B        SCHED+X'482'
+* SCHED+X'2E4'
+OPCSUB   LW,5     4                 SAVE HEAD
+OPCS1    LH,15    UH:FLG,5          GET HIS FLAGS
+         CI,15    X'100'            BATCH?
+         BANZ     OPCS2             YES
+         LW,4     5                 ONLINE OR GHOST   SAVE UN
+OPCS2    LW,5     U:MISC,5          FOLLOW FLINKS
+         AND,5    M8
+         BNE      OPCS1
+         LH,15    UH:FLG,4          REPLACE INSTRUCTION
+         B        SCHED+X'2E5'
+* SCHED+X'2BB'
+RQBLNK   STB,4    UB:PRIO,2
+         LI,2     0
+         B        SCHED+X'2BC'
+* SCHED+X'480'
+STOB96   CI,2     X'E'              STOB
+         BNE      SCHED+X'48E'
+         LOAD,5   UX:JIT,4
+         SLS,5    11
+         AI,5     X'B7'             POINT TO LINE NO. IN JIT
+         LB,5     0,5
+         LC       MODE3,5           CHECK XON/XOFF         KGC 02/19/85
+         BCS,4    SCHED+X'48E'      DONT HOLD XON/XOFF PROTOCOL
+         LB,5     MODE4,5
+         CI,5     X'40'             DONT HOLD D12
+         BANZ     SCHED+X'48E'
+         AND,5    M3                STRIP GARBAGE
+         CI,5     6                 4800 BAUD
+         BL       SCHED+X'48E'      UNDER 4800 DONT HOLD
+         B        SCHED+X'478'      TRY SOMEONE ELSE
+         PAGE
+***********************************************************************
+*
+*        FILE I/O
+*                 EXTRANEOUS EOF REMOVAL
+*                 EOD FILE INTEGRETY INSERTION AND CHECKING
+*
+***********************************************************************
+* WRTF+X'16D'
+NXTKEY   AW,3     14,6              AW,3 IMT,6  REPLACE NOPED INST
+REMEOF   CI,3     12                FIRST KEY ON GRAN?   (MIDIS IS 12)
+         BLE      WRTF+X'165'       YES-- EOF ON PREV GRAN ALREADY GONE
+         LI,0     X'1FFFF'          MASK FOR ADDRESS
+         AND,0    1,6               GET CFU ADDRESS
+         CI,0     FILCFU
+         BLE      WRTF+X'165'       => YES, SKIP REM EOF
+XFD      AI,3     -3                POINT TO EOF   ALSO DATA FOR AND
+         LB,0     X'9600',3         GET FLAGS
+         AND,0    XFD               REM EOF     NOTE: XFD IS INSTRUCTN
+         STB,0    X'9600',3         9600 IS BUFF2
+         AI,3     3
+         B        WRTF+X'165'
+* WRTF+X'437' - EODPUT
+* WRTF+X'469' - EODCK
+EODDATA  DATA     X'E0DE0D0'
+PBEOD    DATA     0
+PVEOD    DATA     0
+EODPUT   LI,2     X'7FC'
+         AND,2    3
+         BE       SAVCBD
+         SLS,2    -2
+         LW,1     EODDATA
+         STW,1    X'9400',2          BUFF1
+         B        SAVCBD
+EODCK    LI,4     X'7FC'
+         AND,4    3
+         BE       WRTF+X'41A'
+         SLS,4    -2
+         LW,4     X'9400',4
+         BE       NOEOD             THIS IS UNEXPLAINED
+*8/3/89 GSP SCSI 12/88 OS WRITES SHORT SECTORS SEE RDF+X'1C7'
+*                                   REPLACE LW,2 .C WITH LI,2 .800
+         CW,4     EODDATA
+         BE       WRTF+X'41A'
+         LW,1     1,6               LW,1 CFU,6
+         LW,3     3,1               GET GAVAL
+         BNE      EODPRV
+         MTW,1    PBEOD             PUBLIC ERROR CNT
+         B        WRTF+X'452'
+EODPRV   EQU,0    $
+         STW,3    PVGAVL
+         STW,1    PVCFU
+         LW,3     4,1
+         STW,3    PVCCBD
+         LI,3     0
+         STW,3    3,1
+         MTW,1    PVEOD             PRIVATE PACK FILE ERROR CNT
+         B        WRTF+X'452'
+PCF      DATA     0
+PGV      DATA     0
+PCCB     DATA     0
+NOEOD    LW,4     1,6
+         STW,4    PCF
+         STW,3    PCCB
+         LW,4     4,4
+         STW,4    PGV
+         B        WRTF+X'41A'
+PVCFU    DATA     0
+PVGAVL   DATA     0
+PVCCBD   DATA     0
+         PAGE
+***********************************************************************
+*
+*        MISCELLANEOUS
+*
+***********************************************************************
+      DO          0 CPCM
+* PFSR:+X'72'
+NO2RAD   LH,5     DCT1,5            REPLACEMENT INSTRUCTION
+         CI,5     X'2F1'            IS THIS THE SECOND RAD?
+         BNE      PFSR:+X'73'       => NO CONTINUE
+         MTW,0    M:FREE#GRAN+1     IS THIS RAD IN USE?
+         BLE      PFSR:+X'77'       => NO
+         B        PFSR:+X'73'       YES IT IS
+      FIN
+* PFSR:+X'76'
+PFSRHIO  HIO,0    *5                GSP 10/30/85
+         B        PFSR:+X'73'
+PFSRTYP  DATA     X'20020000'
+PFSRLOG  LW,8     PFSRTYP           TYPE AND LENGTH FOR POWERON ERRLOG
+         LI,6     8                 POINTER TO MSG
+         AW,6     Y4                FLAG FOR ERRLOG NOT TO CALL IOQ
+         LW,10    POWROFF
+         BAL,5    ERRLOG
+         B        PFSR:+X'8D'
+* PM+X'5A'
+RESP90   LI,3     13
+         SH,1     CH:DRT+1,3
+         AH,1     DRTHEN,3
+         BE       PM+X'72'
+         B        PM+X'5B'
+         PAGE                       INTER-SYSTEM COMMUNICATIONS
+***********************************************************************
+*
+*        INTER-SYSTEM COMMUNICATIONS
+*
+***********************************************************************
+      DO          COMSYS~=0
+TRAP64   EQU      UMOVPTCH+0
+TRAP65   EQU      UMOVPTCH+1
+TRAP66   EQU      UMOVPTCH+2
+TRAP67   EQU      UMOVPTCH+3
+         BOUND    8
+      DO          COMSYS&1
+T64PSD   DATA     0,0,TRAP64,7**24  TRAP INHIBITED
+T65PSD   DATA     0,0,TRAP65,7**24  TRAP INHIBITED
+      FIN
+      DO          (COMSYS&2)~=0
+T66PSD   DATA     0,0,TRAP66,7**24  TRAP INHIBITED
+T67PSD   DATA     0,0,TRAP67,7**24  TRAP INHIBITED
+      FIN
+      FIN
+INTARM   LI,5     X'C00'*(COMSYS&1)+X'300'*(0~=(COMSYS&2))
+*                                   FOR T64,T65 AND/OR T66,T67
+         STW,5    CO:AIL
+         B        COC+X'807'        RETURN
+**********************************************************************
+*
+*        BINARY WRITE TO XP
+*
+**********************************************************************
+*     WRTD+.3A    B WRTLP (LW,1 Y08)
+WRTLP    LB,1     *5,1              GET TB:FLGS FROM SCB
+         CI,1     8                 BINARY ALLOWED FLAG
+         BAZ      WRTLPX
+         LI,1     X'20000'
+         CW,1     0,6               MODE (BINARY) BIT IN DCB
+         BAZ      WRTLPX            NOT BINARY
+         AND,8    RCCN4MSK          CLEAR 4 BIT IN RCC (BYTE 0 SR1)
+         OR,8     Y02
+WRTLPX   LW,1     Y08               REPLACE INSTRUCTION
+         B        WRTD+X'3B'
+RCCN4MSK DATA     X'FBFFFFFF'
+XPINTCH  CW,8     Y04
+         BANZ     WRTD+X'6F'
+*                                   NO VFC OR PAGE COUNT IF BINARY
+         B        *4
+XPNOCMP  LW,4     *J:BASE
+         CI,4     X'2000'           BIN MODE IN DCB
+         BAZ      NOTBIN
+         LW,4     SCDEVTYP,5        BIN ALLOWED IN CBP (FROM TB:FLGS)
+         CI,4     X'800'
+         BAZ      NOTBIN
+         LW,3     J:BASE+3
+         B        COOP+X'94'
+NOTBIN   CI,3     1                 REPLACE PATCHED INSTRUCTION
+         B        COOP+X'C6'
+* RDF+X'871'
+JOURNAL  EQU,0    $             KGC 08/11/86 0 REC JOURNALS (COLDBOOT)
+*        BGE      RDF+X'859'        (REPLACED INST WAS BGE SEQ00)
+         MTW,0    5,1               CHECK IF TDA IS ZERO
+         BNE      RDF+X'859'        DON'T TOUCH UNLESS IT WAS
+         MTW,0    X'9400'           CHECK BLINK
+         BNE      TESTEND           IT MIGHT BE REAL!!!
+         LW,12    X'9402'           BUFF1+2
+         CW,12    NEMPTYFL          IS IT AN NORMAL EMPTY FILE?
+         BE       RDF+X'859'        (ASSUMING FIT, ETC)
+         LC       X'9454'           GET THAT PESKY CONTROL WORD
+         BCR,4    RDF+X'859'        NOT INITIAL
+*        B        RDF+X'875'        IT MIGHT BE REAL!!!
+TESTEND  MTW,0    X'9401'           CHECK FLINK
+         BNE      RDF+X'875'        MIGHT GET 7502 ERROR-BUT WHO CARES
+         LI,12    X'FFFF'
+         AND,12   X'9402'           EXTRACT LAST CONTROL WORD
+         CW,3     12
+         BL       RDF+X'875'        GOOD
+         B        RDF+X'859'        DONE - EOF!
+NEMPTYFL DATA     X'00000054'       MAGIC POINTER PAST CONSEC FIT
+GSPRDFSRD LI,1   X'1FFFF'          RDF LINE 303           (GETCFU)
+         AND,1    1,6               RDF LINE 304           CFU,DCB
+         CI,1     FILCFU            RDF LINE 308/1642
+*        THIS TEST MAY BE OPTION, BUT WHO KNOWS (11/10/89)
+         BLE      RDF+X'440'        RDF LINE 309/1643
+         BAL,0    RDF+X'7A'                                ESTABBUF
+         B        RDF+X'440'        ERROR RETURN
+         LI,14    X'3E0'            RDF LINE 1584          BUF2MSK
+         AND,14   9,6               RDF LINE 1585
+         BE       RDF+X'440'        RDF LINE 1586
+         B        RDF+X'404'        RDF LINE 1587          RETURN
+*
+*                                   A READ AHEAD PROBLEM FOUND!
+*
+RAPATCH  EQU,0    $
+         BE       RA+X'66'          (REPLACED INSTRUCTION)
+         LW,3     0                 SWITCH TO DESIRED VOL #
+         B        RA+X'62'
+LASTPTCH EQU,0    $
+         LOC      $$
+PATCHCOUNT EQU    $-PATCHES-1
+         PAGE
+         STARTPATCH
+PBITS    EQU      $-1
+         PAGE
+         TEXT     'AUCC'            0
+         TEXT     'HPPR'            1
+         TEXT     'FMII'            2
+         TEXT     'V100'            3
+         TEXT     'T920'            4
+*        TEXT     'DTMS'            5         DTMS
+         TEXT     'AUCC'            5
+         DATA     0                 6            FOR CLT
+         DATA     0                 7
+         DATA     0                 8
+         DATA     0                 9
+         DATA     0                 A
+         DATA     0                 B
+         DATA     0                 C
+         DATA     0                 D
+         DATA     0                 E
+         DATA     0                 F
+         PATCHAT  X'70'
+         CI,0     X'C0'             WAS X'A0' (GHOST INIT)
+         PATCHAT  T:INITJOB+2
+***********************************************************************
+*
+*        BINARY WRITE TO XP
+*
+***********************************************************************
+         B        WRTLP
+         PATCHAT  WRTD+X'3A'
+         BAL,4    XPINTCH
+         PATCHAT  WRTD+X'54'
+         B        XPNOCMP
+         PATCHAT  COOP+X'C5'
+         LI,1     X'49'             (SPACE) WAS LI,1 X'4A' (JDE)
+         PATCHAT  WRTD+X'A2'        12/16/87 KGC (FROM GSP)
+      DO          SYSTEM=B
+         DATA     X'02000000'
+         PATCHAT  MM+X'54'
+      FIN
+***********************************************************************
+*
+*        COC
+*
+***********************************************************************
+         AI,8     2                 => 2 PRE-HEADING LINES
+         PATCHAT  COC+X'6FD'        WAS AI,8   5 (6 LINES)
+*
+         AI,8     -3                => 2 POST-HEADING LINES
+         PATCHAT  COC+X'732'        WAS AI,8   -6 (5 LINES)
+*
+         B        HWLOGOFF          HARDWIRED LINE LOGOFF FEATURE
+         BNE      COC+X'7D6'        REPLACED IFS IN REVERSE ORDER
+         DATA     X'6C000000'       RD,0 0
+         LW,8     8
+         BCS,5    COC+X'7AF'        SS2 OR HARDWIRED LINE
+         PATCHAT  COC+X'7BA'
+      DO          NSCOC
+         B        COCERR
+      ELSE
+         AND,7    M6                REPLACEMENT INSTRUCTION
+      FIN
+         PATCHAT  COCOP+1
+*
+      DO          NSCOC
+         B        GSPCOC
+      ELSE
+         DATA     X'CDF0000F'       TIO,15 *15
+      FIN
+         PATCHAT  COC+X'1E'
+*
+      DO          NSCOC
+         B        GSPCOCI
+      ELSE
+         DATA     X'CC000005'       SIO,0 *5
+      FIN
+         PATCHAT  COC+X'80C'
+*
+      DO          NSCOC
+         B        GSPCOCT
+      ELSE
+         DATA     X'4D0E0000'       TIO,0 0,7
+      FIN
+         PATCHAT  COC+X'789'
+*
+      DO          NSCOC
+         B        COCWDTO
+      ELSE
+         B        *15
+      FIN
+         PATCHAT  CSE$9:9+13
+*        WAS      CSE$9:7+9 UNDER CPCF (SIGMA 7) WITH DO AROUND PATCHAT
+*                 ONLY.  THUS CPCG (SIGMA 9 SMALL?) WAS BAD.
+*                 PROBABLY DROPPED ENTIRELY AFTER CPCI 9/16/85
+*                 THUS BOTH THIS AND THE NEXT PATCH WERE RUINED IF
+*                 CPCF WAS NOT SELECTED.
+*                 FIXED KGC 2/23/89.
+*
+      DO          NSCOC
+         B        DRBCSE
+      ELSE
+         LI,0     0
+      FIN
+         PATCHAT  CSEHAND:+X'EE'
+*
+      DO          NSCOC
+         NOP      1
+      ELSE
+         STW,15   TABLES+X'167'
+      FIN
+         PATCHAT  CSEHAND:+X'112'
+*
+         B        STS1B
+         PATCHAT  COC+X'79C'
+         B        INTARM
+         PATCHAT  COC+X'806'
+         B        PPCHK             CLEAR UP 6B-00 PROBLEM
+         PATCHAT  CLRBBUF+X'1A'     CLEAR UP 6B-00 PROBLEM
+         B        LOGSYS
+         PATCHAT  T:RCE+X'F'        ALLOW SYSTEM LINES WHEN ON 0
+      DO          0 CPCM
+         B        SHIFTSWAP         INCREASE SWAP SPACE FOR NO USERS
+         PATCHAT  T:RCE+X'13'
+      FIN
+         NOP      2                 DISABLE ESC-P MODE
+         PATCHAT  COC+X'112'
+         B        COC+X'25C'
+         PATCHAT  COC+X'257'
+         B        *15
+         PATCHAT  COC+X'35D'
+         NOP      3                 ALLOW XON/XOFF ECHO ON ESC E
+         PATCHAT  COC+X'35A'        GSP 12/17/84
+         NOP      4
+         PATCHAT  COC+X'619'
+         NOP      5
+         PATCHAT  COC+X'6A0'        END DISABLE ESC-P MODE PATCHES
+***********************************************************************
+*
+*        INTER-SYSTEM COMMUNICATIONS
+*
+***********************************************************************
+      DO          COMSYS&1
+         DATA     X'0F800000'+T64PSD
+         DATA     X'0F800000'+T65PSD
+      ELSE
+         DATA     X'33000000'       MTW,0 0 (DUMMY INTERRUPT)
+         DATA     X'33000000'       MTW,0 0 (DUMMY INTERRUPT)
+      FIN
+         PATCHAT  X'64'
+*
+      DO          (COMSYS&2)~=0
+         DATA     X'0F800000'+T66PSD
+         DATA     X'0F800000'+T67PSD
+      ELSE
+         DATA     X'33000000'       MTW,0 0 (DUMMY INTERRUPT)
+         DATA     X'33000000'       MTW,0 0 (DUMMY INTERRUPT)
+      FIN
+         PATCHAT  X'66'
+***********************************************************************
+*        BAL,11   IORT+X'36B'       REMOVE CP MIN REC PATCH
+*        PATCHAT  WRTD+X'15A'       SC 1900--SEE S/W LOG 91/01/28
+   DO             CPCO
+         DATA     X'00800000'       CHANGE 9TA80 TO 9TAF0 TO 9TA80
+         PATCHAT  DCT1+2,X'FFFF0000'                   *** SYSGEN DEPT
+         DATA     'TA80'            CHANGE 9TA80 TO 9TAF0 TO 9TA80
+         PATCHAT  DCT16+9                              *** SYSGEN DEPT
+      DO          SYSTEM=A
+         DATA     X'00000081'       CHANGE 9TA81 TO 9TAF1 TO 9TA81
+         PATCHAT  DCT1+2,X'FFFF'                       *** SYSGEN DEPT
+         DATA     'TA81'            CHANGE 9TA81 TO 9TAF1 TO 9TA81
+         PATCHAT  DCT16+11                             *** SYSGEN DEPT
+      FIN
+   FIN
+*        DATA     X'5B000000'       LISTING,OUT,BIN,COMP,VFC
+*        PATCHAT  TB:FLGS+5,X'FF000000'  HP
+      DO          0 CPCM
+         DATA     X'C000'           SET INPUT ON PP
+         PATCHAT  DCT3,X'DF00'      DCT INDEX = 2, BUT LEAVE PART BIT
+         DATA     X'38'             SET INPUT ON PP
+         PATCHAT  TB:FLGS,X'FF'     OH:NM INDEX = 3
+      FIN
+      DO          SYSTEM=B|SYSTEM=A
+         DATA     X'030000'         CHANGE TIMEOUT FOR BELO-BOX DISK
+         PATCHAT  DISKAB+01,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+02,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+03,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+04,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+05,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+06,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+07,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+08,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+09,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+10,X'FF0000'
+         DATA     X'030000'
+         PATCHAT  DISKAB+11,X'FF0000'
+      FIN
+      DO          0 CPCM
+PPHAND   SET      UMOVPTCH+12
+         DATA     PPHAND
+         PATCHAT  DCT8+2            *** SYSGEN DEPENDANT
+         DATA     PRTCU
+         PATCHAT  DCT9+2            *** SYSGEN DEPENDANT
+      FIN
+***********************************************************************
+*
+*        HANDLERS
+*
+***********************************************************************
+         CI,2     AVRTBLSIZ         DISC NOT ANS
+         BL       HANDLERS+X'FFC'               **SYSGEN** DEPENDANT
+         PATCHAT  HANDLERS+X'13D'
+         LC       ANSFLGS,2         REPLACED INSTRUCTION
+         BCR,8    HANDLERS+X'13F'   DITTO
+         LI,2     1                 FIX ANS ON 1ST TAPE
+         B        HANDLERS+X'141'
+         PATCHAT  HANDLERS+X'FFC'               **SYSGEN** DEPENDANT
+*
+      DO          SYSTEM=0          GSP
+         BCS,9    IOQ+X'419'        ELIMINATES SC 19-00 FOR NON MPOOL
+      ELSE
+         BCS,9    SC1900
+      FIN
+         PATCHAT  IOQ+X'416'        COMMAND CHAIN LIST (IE GSP VOC)
+*                 GSP TAPE ERROR HANDLER PATCH
+         DATA     X'5C000000'       NEW VALUE, OLD VALUE = X'83000000'
+         PATCHAT  MAGTAPE+X'A7',X'FF000000'
+         DATA     X'83000000'       NEW VALUE, OLD VALUE = X'5C000000'
+         PATCHAT  MAGTAPE+X'A9',X'FF000000'
+         DATA     X'01'             NEW VALUE, OLD VALUE = X'19'
+         PATCHAT  MAGTAPE+X'CC',X'FF'
+         DATA     X'01'             NEW VALUE, OLD VALUE = X'1F'
+         PATCHAT  MAGTAPE+X'D2',X'FF'
+         LB,8     IOQ10,3           WAS          CI,7 10
+         SW,7     8                              BLE MTAP+X'22'
+         AI,7     10                (MAXERASE)   LI,7 10
+         PATCHAT  MTAP+X'1F'
+***********************************************************************
+*
+*        MISCELLANEOUS
+*
+***********************************************************************
+      DO          0 CPCM
+         DATA     X'2F1'            FIX M:SWAPD+1
+         PATCHAT  M:SWAPD+1         FROM 2F0
+         DATA     X'2F1'            PUT THE SECOND RAD BACK AT 2F1
+         PATCHAT  DCT1+3,X'FFFF'      ***** SYSGEN DEPENDANT *****
+         DATA     'CCF1'
+         PATCHAT  DCT16+15            ***** SYSGEN DEPENDENT *****
+         DATA     X'0003'           PUT CR BACK WHERE IT BELONGS
+         PATCHAT  DCT1+1,X'FFFF'      ***** SYSGEN DEPENDENT *****
+         DATA     'RA03'
+         PATCHAT  DCT16+7             ***** SYSGEN DEPENDENT *****
+      FIN
+         BCS,12   PFSRHIO           HIO IF RAD WONT COME READY
+         PATCHAT  PFSR:+X'76'
+         B        PFSRLOG           LOG POWER FAILSAFES
+         PATCHAT  PFSR:+X'8C'
+         B        RAPATCH           PRIVATE VOLUME READ-AHEAD
+         PATCHAT  RA+X'61'
+      DO          0 CPCM
+         B        NO2RAD            GO CHECK FOR SECOND RAD ON SYSTEM
+         PATCHAT  PFSR:+X'72'
+      FIN
+***********************************************************************
+*
+*        SCHEDULING
+*
+***********************************************************************
+         B        NOBEX
+         PATCHAT  SCHED+X'182'
+         BE       BATIO
+         PATCHAT  SCHED+X'233'
+         B        BATIO
+         PATCHAT  SCHED+X'23C'
+         B        BATIO
+         PATCHAT  SCHED+X'246'
+         BE       BATIO
+         PATCHAT  SCHED+X'235'
+         DATA     X'29090A1A'
+         PATCHAT  COC+X'872'
+***********************************************************************
+*
+*        FILE I/O
+*
+***********************************************************************
+         BAL,0    EODPUT
+         PATCHAT  WRTF+X'437'
+         B        EODCK
+         PATCHAT  WRTF+X'469'
+         DATA     X'20581287'
+         PATCHAT  SB:SET:+4
+         BG       STOB96
+         PATCHAT  SCHED+X'480'
+         CI,3     8                 SET MAX GHOST I/O IN PROG
+         PATCHAT  IOQ+X'1F'
+         B        RESP90
+         PATCHAT  PM+X'5A'
+         B        REMEOF
+         STH,3    *6,2
+         PATCHAT  WRTF+X'164'
+         BE       WRTF+X'16E'
+         PATCHAT  WRTF+X'169'
+         BGE      NXTKEY
+         PATCHAT  WRTF+X'16D'
+         AI,0     0                 SPEED UP HOT CODE
+         PATCHAT  RDF+X'36A'
+         B        JOURNAL           EMPTY JOURNAL FILES (COLDBOOTS)
+         PATCHAT  RDF+X'871'
+*        GSP 10/17/89 CASE OF OLD TDA, ETC--CLUSTERED READ/WRITES
+         BE       GSPRDFSRD         SPEED UP SHARED KEYED READ/WRITE
+         PATCHAT  RDF+X'403'        RDF LINE 1586
+         PAGE
+***********************************************************************
+*
+*        SCHED
+*
+***********************************************************************
+* 8/3/89 WAS CI,7 2 - GSP SEE SB:SWP:
+         CI,7     3                 DONT SWAP STI IF NO INSWAP
+         BL       SCHED+X'472'
+         PATCHAT  SCHED+X'46C'
+*8/3/89
+         DATA     X'00121316'       SW,SQA,STI
+         DATA     X'0C0E1418'       SC10,STOB,SQR,SQFI
+         PATCHAT  SB:SWP:           KICK OUT SQA (WAS LAST)
+         B        RQBLNK
+         PATCHAT  SCHED+X'2BB'
+         B        OPCSUB
+         PATCHAT  SCHED+X'2E4'
+         B        DSOPNCLS
+         PATCHAT  SCHED+X'481'
+         BE       D12FC
+         PATCHAT  COC+X'65C'
+         B        KIIOP
+         PATCHAT  IOQ+X'4D4'
+         AI,2     -4                OPEN CLOSE BOOST OF 4
+         PATCHAT  SCHED+X'1C6'
+         PATCHAT  SCHED+X'396'
+         DATA     0
+         PATCHAT  SL:EPS
+         DATA     0
+         PATCHAT  SL:ETS
+         STW,2    COCOEL
+         PATCHAT  COC+X'3FA'        SAVE OUTPUT INT ERR LINE
+         B        TRONIFOFF
+         PATCHAT  COC+X'794'
+         LI,7     D12BRK
+         PATCHAT  COC+X'38'
+      DO          AUTOBAUD
+         BE       ASTERS
+         PATCHAT  COC+X'14F'
+      FIN
+         B        SETWAIT
+         PATCHAT  COC+X'7C8'
+         BCR,1    COC+X'7D4'
+         PATCHAT  COC+X'7B0'        TIME OUT HW LINES IN LOGON
+         DATA     X'F2482B7F'       INCLUDE ATTN INT AS ERROR
+         PATCHAT  HANDLERS+X'1D5'
+         DATA     X'1800'           VECTOR TO DOSENSE BRANCH AFTER REST
+         PATCHAT  HANDLERS+X'1D8',X'FF00'
+         DATA     X'B3000000'
+         DATA     X'04800000'       NEW RESTORE CDW
+         PATCHAT  HANDLERS+X'1CA'   RESTORE CDW
+         PAGE
+***********************************************************************
+*
+*        MISCELLANEOUS
+*
+***********************************************************************
+         B        MMCHK
+         PATCHAT  MM+X'A4'
+*
+         DATA     5                 READ AHEAD DOES NOT WORK RIGHT YET
+         PATCHAT  SL:AIRM           GEN PUTS 0 HERE
+         DATA     8                 ON MULTIVOLUME PRIVATE PACK
+         PATCHAT  SL:RAMR           AND 13 HERE
+*        DATA     200               SH:RBSUM BTCO
+*        PATCHAT  SH:RBSUM,X'FFFF'
+CODHWL   DATA     X'FFFFFFFF',X'FFFFFFFF'
+         DATA     0,0               WILL BE READ IN FROM FILE
+         DATA     0,0               THAT THIRD COC
+         PATCHAT  COD:HWL
+         B        DIN1200
+         PATCHAT  COC+X'42'
+         B        DOUT1200
+         PATCHAT  COC+X'3AE'
+         LI,6     158
+         STB,6    MODE5,2
+         B        ONINIT
+         PATCHAT  COC+X'801'
+         B        INITSPD
+         PATCHAT  COC+X'822'
+         B        CALCBUF
+         PATCHAT  COC+X'54F'
+L00#03   DATA     X'87878787',X'87878787'
+L08#0F   DATA     X'87878787',X'87878787'
+L10#17   DATA     X'8282022A',X'87878787'
+L18#1F   DATA     X'84444444',X'87878787'
+L20#27   DATA     X'02020206',X'87878787'
+L28#2F   DATA     X'2A2A2A2A',X'2A2A2A2A'
+L30#37   DATA     X'2A2A2A2A',X'2A2A2A2A'
+L38#3F   DATA     X'2A2A2A2A',X'2A2A2A2A'
+* 2ND COC
+L40#47   DATA     X'87878787',X'87878787'
+L48#4F   DATA     X'87878787',X'87878787'
+L50#57   DATA     X'87878787',X'87878787'
+L58#5F   DATA     X'87878787',X'87878787'
+L60#67   DATA     X'87878787',X'87878787'
+L68#6F   DATA     X'87878787',X'87878787'
+L70#77   DATA     X'87878787',X'87878787'
+L78#7F   DATA     X'87878787',X'87878787'
+* 3RD COC
+L80#87   DATA     X'87878787',X'87878787'
+L88#8F   DATA     X'87878787',X'87878787'
+L90#97   DATA     X'87878787',X'87878787'
+         PATCHAT  MODE4INIT
+         MTB,1    CPOS,2            SLIGHT PROBLEM WITH BS EDIT MODE
+         B        COC+X'295'        BS EDIT MODE => BS <=> DELETE
+         PATCHAT  COC+X'27D'
+         B        COC+X'521'        APL MATRIX INVERT      87/05/21
+         PATCHAT  COC+X'51D'        GO RO MURUB IF MUBS/ESC O
+         BE       DMBS
+         PATCHAT  COC+X'296'
+         DATA     X'0C000000'
+         PATCHAT  TTYOUT+44,X'FF000000'
+         DATA     X'31'
+         PATCHAT  TTYOUT-2,X'FF'
+         CI,4     1
+         BGE      COC+X'9D'
+         CI,5     X'7D'
+         BL       COC+X'9D'
+         NOP      6
+         NOP      7
+         PATCHAT  COC+X'96'
+         B        TERMTYPE          RETAIN SAME TERM TYPE IF D12
+         PATCHAT  COC+X'3F4'
+         B        TERMTYPE1         RETAIN SAME TERM TYPE IF D12
+         PATCHAT  COC+X'79B'
+         LB,4     MODE4,7
+         AND,4    XF
+         STB,4    MODE4,7
+         B        CLR12
+         PATCHAT  COC+X'7E3'
+         DATA     SSTDLC
+         PATCHAT  COCITV+1,X'FFFF'
+         DATA     SSTD
+         PATCHAT  COCOTV+1,X'FFFF'
+         DATA     SAPLLC
+         PATCHAT  COCITV,X'FFFF'
+         DATA     SAPL
+         PATCHAT  COCOTV,X'FFFF'
+BITCOUNT EQU      $-PBITS-1
+         END      START
