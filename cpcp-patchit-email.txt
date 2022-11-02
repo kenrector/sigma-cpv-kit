@@ -1,9 +1,10 @@
 
 
 
-In response to my query about non-boot patches, patches that get applied after the sysem is up.  Following Keith's response is a copy of the patchit patches on system cpcp.tap.
+In response to my query about non-boot patches, patches that get applied after the sysem is up.  Following Keith's response 
+is a copy of the patchit patches on system cpcp.tap.
 
-I don't know how this feature worked.  Assemble this and run it after boot?
+I don't know how this feature worked.  Assemble this and run it after boot?  
 
 
 
