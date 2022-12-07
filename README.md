@@ -15,6 +15,10 @@ lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material 
 
 MTLU00.tap is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
 
+cpf0.ini is a simh initialization file containing definition and attach commands to setup the simulator to support CP-V F00 system.
+
+cpf0.tap is a bootable CP-V PO tape used to initialize a CP-V F00 system.  This system was generated from the Honeywell F00 System Release tapes and produced following SYSGEN instructions in the 707000-11F00 Release Document.
+
 ## Installation
 These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
 
