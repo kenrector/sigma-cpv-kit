@@ -2,7 +2,9 @@
 Useful files to boot CP-V on the simh sigma simulator
 
 ## Introduction
-This repository includes a bootable master system tape and a .ini file that can be used to install and execute CP-V using the simh Sigma simulator.  The master system tape (PO) and other files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get this kit working.  
+This repository includes a bootable master system tape and a .ini file that can be used to install and execute CP-V using the simh Sigma simulator.  The master system tape (PO) and other files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get this kit working.
+
+Just now, December 8, 2022, this material has been tested with simh-V4 only.  An Issue has been posted for this subject.
 
 ## Files
 cpcp.tap is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
@@ -14,10 +16,6 @@ cpcpdoc.txt file is a description of installing and running CP-V using siggy, a 
 lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 
 MTLU00.tap is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
-
-cpf0.ini is a simh initialization file containing definition and attach commands to setup the simulator to support CP-V F00 system.
-
-cpf0.tap is a bootable CP-V PO tape used to initialize a CP-V F00 system.  This system was generated from the Honeywell F00 System Release tapes and produced following SYSGEN instructions in the 707000-11F00 Release Document.
 
 ## Installation
 These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
