@@ -7,16 +7,14 @@ This repository includes a bootable master system tape and a .ini file that can 
 Just now, December 8, 2022, this material has been tested with simh-V4 only.  An Issue has been posted for this subject.
 
 ## Files
-cpcp.tap is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
 
-sigma.ini is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
-
-cpcpdoc.txt file is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.  Experience with simh will be valuable.
-
-lcmcpv00.pdf and lcmcpv01.pdf files provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
-
-MTLU00.tap is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
-
+File | Description
+---- | ----
+cpcp.tap | is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
+sigma.ini | is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
+cpcpdoc.txt | is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
+lcmcpv00.pdf, lcmcpv01.pdf | provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
+MTLU00.tap | is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
 ## Installation
 These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
 
@@ -28,21 +26,21 @@ Following the prompt for media assignments, type FTPI.
 Following the query "C/LL/DC ASSIGN OK" type RET.
 Following the SENSE SWITCH settings type RET.
 
-CP-V will report the number of patches and list them as they are appplied.
+CP-V will report the number of patches and list them on the LP device as they are appplied.
 
 CP-V will report the number of users and some other statistics ending with UPTIME = xx:xx:xx:xx
 
+CP-V is now installed on the system swap and file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
+
 At this point CP-V is up, but no online or batch users are allowed to login. This allows the operator to perform some tasks as GHOST jobs using the Operator Console (OC) before users log on.
 
-CP-V is now installed on the system swap file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
-
-Not that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the date and time will be printed after than.
+Note that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the time will then be printed on the OC each minute.
 
 ## Operator Console Interface
 The OC interface is activated by the INTERRUPT button  on the Sigma front panel.  This is simulated in simh by entering CTL-P in the console window.
 
 ## :SYS Password
-The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USERS file.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.  You can create a password for :SYS,LBE later if you wish.
+The system on this PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USERS file as described in Keith's writeup.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.  You can create a password for :SYS,LBE later if you wish.
 
 The PCL interchange will look like this:
 
@@ -60,7 +58,7 @@ END
 
 
 ## Logging on
-Time share logons are enabled by the ON keyin at the Operator Console (OC).  Activate the OC with CTL-P and at the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.  The number 107 is based on the amount of users supported by the swap device less the number of required ghost jobs started at system boot, (121 - 14). you can choose a lesser value.
+Time share logons are enabled by the ON keyin at the Operator Console (OC).  Activate the OC with CTL-P and at the prompt type ON 107 to set the number of online users to 107.  The system is now up and prepared for users to log on.  The number 107 is based on the number of users supported by the swap device less the number of required ghost jobs started at system boot, (121 - 14). you can choose a lesser value.
 
 This CP-V installation is configured with COC lines 0-5 and 10 configured for particular types of terminals and printers.  The remaining lines are configured as VT-100 type terminals.  The sigma.ini file includes simh V4 attach commands that allow one to select which lines you will connect to based on port number. Simh V3 has a different method of selecting lines.
 
