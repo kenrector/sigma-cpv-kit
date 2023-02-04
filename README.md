@@ -11,13 +11,14 @@ Just now, December 8, 2022, this material has been tested with simh-V4 only.  An
 File | Description
 ---- | ----
 cpcp.tap | is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
-sigma.ini | is a simh initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
+sigma.ini | is a simh V4 initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
+sigma-v3.ini | is a simh V3.12 initialization file.
 cpcpdoc.txt | is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
 lcmcpv00.pdf, lcmcpv01.pdf | provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
 mt2tap.c | is a program to translate .mt files to .tap.  Developed on a Mac.
 ## Installation
-These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini configuration file.
+These instructions describe how to install CP-V from the cpcp.tap PO tape using the sigma.ini or sigma-v3.ini configuration file.
 
 Boot from mt0
 
