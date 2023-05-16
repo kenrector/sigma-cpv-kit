@@ -1,19 +1,23 @@
 # sigma-cpv-kit
-Useful files to boot CP-V on the simh sigma simulator
+Useful files to run CP-V on the simh sigma simulator
 
 ## Introduction
-This repository includes a bootable master system tape and a .ini file that can be used to install and execute CP-V using the simh Sigma simulator.  The master system tape (PO) and other files were provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get this kit working.
+This repository contains support documentation and files that can be used to install and execute CP-V using the simh Sigma simulator.  Two CP-V versions are included, cpcp and f00.  The cpcp version was provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get the system running on simh.  The cpcp system is based on the Xerox C00 release and includes additional software developed by Andrews University to support their requirements.
 
-Just now, December 8, 2022, this material has been tested with simh-V4 only.  An Issue has been posted for this subject.
+The f00 version is Honeywell Release F00 from September 28, 1978.  There are two f00 system configurations, a disk swapper and a rad swapper.
+
+These CP-V systems will run on any of the released simh versions, Classic simh V3.12, simh V4 and Open simh V4.1.  Note that there is a difference in the command control language between the three simh versions.
 
 ## Files
 
 File | Description
 ---- | ----
-F00/ | is a folder containing files to support the CP-V F00 release. There are two subfolders, one contains files for a Disc Pack swapper system and he other contains files for a RAD swapper system.
-cpcp.tap | is a bootable CP-V PO tape created by Andrews University to support their hardware and C00 release software configuration.
-sigma.ini | is a simh V4 initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
-sigma-v3.ini | is a simh V3.12 initialization file.
+cpcp/ | is a folder to contain files to support the CP-V cpcp release from Andrews University.
+cpcp/cpcp.tap | is a bootable CP-V PO tape configured for Andrews University Computer Center.
+cpcp/sigma.ini | is a simh V4 initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration. You may wish to modify this file, particularly the MT and DP attach commands to suit your personal environment.
+cpcp/sigma-v3.ini | is a simh V3.12 initialization file.
+f00/ | is a folder to contain files to support the CP-V F00 release. There are two subfolders, a Disc Pack swapper system and a RAD swapper system.
+f00/cpf0/
 cpcpdoc.txt | is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
 lcmcpv00.pdf, lcmcpv01.pdf | provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
