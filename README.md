@@ -2,7 +2,7 @@
 Useful files to run CP-V on the simh sigma simulator
 
 ## Introduction
-This repository contains support documentation and files that can be used to install and execute CP-V using the simh Sigma simulator.  Two CP-V versions are included, cpcp and f00.  The cpcp version was provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get the system running on simh.  The cpcp system is based on the Xerox C00 release and includes additional software developed by Andrews University to support their requirements.
+This repository contains files and documentation that can be used to install and execute CP-V using the simh Sigma simulator.  Two CP-V versions are included, cpcp and f00.  The cpcp version was provided by Keith G. Calkins from his archive of CP-V material at https://www.andrews.edu/~calkins/sigma/.  Keith also contributed his extensive knowlege of CP-V to the effort to get the system running on simh.  The cpcp system is based on the Xerox C00 release and includes additional software developed by Andrews University to support their requirements.
 
 The f00 version is Honeywell Release F00 from September 28, 1978.  There are two f00 system configurations, a disk swapper and a rad swapper.
 
@@ -53,21 +53,16 @@ On the cpcp system, the date and time queries were skipped over during the tape 
 The OC interface is activated by the INTERRUPT button on the Sigma front panel.  This is simulated in simh by entering CTL-P in the console window.
 
 ## :SYS Password
-The system on the cpcp PO tape includes a :USERS file with account names and logon passwords for the system account (:SYS) and a couple of users.  Run the PCL processor as a ghost job and backup and delete the existing :USERS file as described in Keith's writeup.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.  You can create a password for :SYS,LBE later if you wish.
+The cpcp PO tape includes the Andrews Univerity :USERS file with account names and logon passwords for the system account (:SYS) and other users.  Run the PCL processor as a ghost job and backup and delete the existing :USERS file as described in Keith's writeup.  The system will then allow a logon from :SYS,LBE without a password and will create a new :USERS file with only the :SYS,LBE account without a password.  You can create a password for :SYS,LBE later if you wish.
 
 The PCL interchange will look like this:
 
 !GJOB PCL
-
 17:   PCL HERE
-
-COPY :USERS ON :USERSSV
-
-DEL :USERS
-
+!COPY :USERS ON :USERSSV
+!DEL :USERS
 17:   .. 1 FILES DELETED, 3 GRANULES
-
-END
+!END
 
 The f00 systems do not include a :USERS file and will thus create a default file with only the :SYS,LBE account without a password.
 
@@ -89,8 +84,6 @@ Use telnet, putty or your favorite telnet client to connect to CP-V on a selecte
 HI, TCP-V HERE - ANDREWS C0F
 09:55 AUG 23,'80 ON WEST   USER# C     LINE# 6  
 LOGON PLEASE: 
-
-
 
 ## Boot from disc
 You can boot CP-V from the swap disc with the simh boot command addressed to the attached swap device.  Each time you reboot you will need to do the ON 107 and other setup keyins.
@@ -116,6 +109,3 @@ These systems defines a card reader (CRA03) connected to a symbiont device.  The
 You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/.
 
 Shut down CP-V with the ZAP keyin at the operator console.   Don't quit out of simh while CP-V is up if you can help it.  
-
-Save a backup of the cpvswap and cpvfiles files.  You can restore them if something goes wrong.
-
