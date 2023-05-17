@@ -28,7 +28,7 @@ lcmcpv00.pdf, lcmcpv01.pdf | Documents to provide an overview of CP-V.  This mat
 MTLU00.tap | A stand-alone bootable diagnostic progam.  Start simh with one of the above .ini files and boot this from mt0.
 mt2tap.c | A program to translate .mt files to .tap.
 ## Installation
-These instructions describe how to install CP-V from a PO tape.  The repository WIKI page also contains installation information.
+These instructions describe how to install CP-V from a PO tape.  The repository WIKI page contributed by Madhu Siddalingaiah also contains installation information.
 
 Start simh using the appropriate .ini file for your system.
 
