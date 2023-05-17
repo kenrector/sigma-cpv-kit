@@ -28,7 +28,7 @@ lcmcpv00.pdf, lcmcpv01.pdf | provide an overview of CP-V.  This material was pre
 MTLU00.tap | is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
 mt2tap.c | is a program to translate .mt files to .tap.  Developed on a Mac.
 ## Installation
-These instructions describe how to install CP-V from any of the included PO tapes.  The repository WIKI page also contains installation information.
+These instructions describe how to install CP-V from a PO tape.  The repository WIKI page also contains installation information.
 
 Start simh using the appropriate .ini file for your system.
 
@@ -42,11 +42,11 @@ Following the SENSE SWITCH settings type RET.
 
 CP-V will report the number of patches and list them on the LP device as they are appplied.
 
-On the cpcp system, CP-V will report the number of users and some other statistics ending with UPTIME = xx:xx:xx:xx
+CP-V is now installed on the system swap and file devices.  On the cpcp system, CP-V will report the number of users and some other statistics ending with UPTIME = xx:xx:xx:xx. On the f00 system, CP-V will report that the FILL ghost is initiated.
 
-CP-V is now installed on the system swap and file devices and may be restarted by booting from the swap device with the simh boot command specifying the proper device.
+At this point CP-V is up, but no online or batch users are allowed to login. This allows the an oppportunity for the operator to perform some tasks as GHOST jobs using the Operator Console (OC) before users log on.
 
-At this point CP-V is up, but no online or batch users are allowed to login. This allows the operator to perform some tasks as GHOST jobs using the Operator Console (OC) before users log on.
+The system may be restarted by booting from the swap device using the simh boot command specifying the proper swap device.
 
 On the cpcp system, the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the time will then be printed on the OC each minute.
 
