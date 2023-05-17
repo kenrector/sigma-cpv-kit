@@ -110,6 +110,6 @@ These systems defines a card reader (CRA03) connected to a symbiont device.  The
 You can find many reference manuals at http://bitsavers.org/pdf/sds/sigma/cp-v/.
 
 Shut down CP-V with the ZAP keyin at the operator console.  CP-V will respond to the command by printing 
-"       THAT'S ALL, FOLKS!!".
-It may take a minute or so for the response.  Don't quit out of simh until you see it or have waited patiently.
+"                 THAT'S ALL, FOLKS!!"
+when the shutdown is completed.  CP-V will loop at location x'6' with a BDR,0 6.  It may take a minute or so for the shutdown to complete.  Don't quit out of simh until you see it or have waited patiently.
 
