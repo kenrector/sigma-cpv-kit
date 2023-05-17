@@ -27,7 +27,7 @@ lcmcpv00.pdf, lcmcpv01.pdf | provide an overview of CP-V.  This material was pre
 MTLU00.tap | is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
 mt2tap.c | is a program to translate .mt files to .tap.  Developed on a Mac.
 ## Installation
-These instructions describe how to install CP-V from the cpcp.tap PO tape in the cpcp folder using the sigma.ini or sigma-v3.ini configuration file.  They also apply to the F00 releasees found in the f00 folders.
+These instructions describe how to install CP-V from any of the included PO tapes.  The repository WIKI page also contains installation information.
 
 Start simh using the appropriate .ini file for your system.
 
@@ -41,13 +41,13 @@ Following the SENSE SWITCH settings type RET.
 
 CP-V will report the number of patches and list them on the LP device as they are appplied.
 
-CP-V will report the number of users and some other statistics ending with UPTIME = xx:xx:xx:xx
+On the cpcp system, CP-V will report the number of users and some other statistics ending with UPTIME = xx:xx:xx:xx
 
-CP-V is now installed on the system swap and file devices and may be restarted by booting from the swap device with the simh boot dpb0 command.
+CP-V is now installed on the system swap and file devices and may be restarted by booting from the swap device with the simh boot command specifying the proper device.
 
 At this point CP-V is up, but no online or batch users are allowed to login. This allows the operator to perform some tasks as GHOST jobs using the Operator Console (OC) before users log on.
 
-Note that the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the time will then be printed on the OC each minute.
+On the cpcp system, the date and time queries were skipped over during the tape initialization.  This causes the single character ':' to be printed every minute following the installation.  A subsequent disc boot will prompt for the current date and time and the time will then be printed on the OC each minute.
 
 ## Operator Console Interface
 The OC interface is activated by the INTERRUPT button on the Sigma front panel.  This is simulated in simh by entering CTL-P in the console window.
@@ -76,17 +76,21 @@ Time share logons are enabled by the ON keyin at the Operator Console (OC).  Act
 
 The system is now up and prepared for users to log on.  The number 107 is based on the number of users supported by the swap device less the number of required ghost jobs started at system boot, (121 - 14). You can choose a lesser value.
 
+Refer to the system .ini file to determine the port attached to the mux device for your system.
+
 The cpcp system is generated with COC lines 0-5 and 10 configured for particular types of terminals and printers.  The remaining lines are configured as VT-100 type terminals.  The cpcp/sigma.ini file includes simh V4 mux attach commands that allow one to select which lines you will connect to based on port number.
 
 The COC lines, except 0-5 and 10, are configured as hardwired connections that recquire a BREAK signal to start the LOGON process.  To send a BREAK signal from the telnet application, enter the telnet command mode by typing CTL-] and then the command 'send break'.  To avoid this and set the communication lines to non-hardwired, enter simh and type DEP 114a 0 to store 00000000 in the hardwired line flags.  This will set the first 32 lines to automatic mode and a logon prompt will be issued when they connect.
 
-Use telnet, putty or your favorite telnet client to connect to CP-V on port 4000 and send the break command.  You will be assigned to the next available line and receive the salutation;
+The f00 systems are generated with non-hardwired terminals and will present the logon salutation when they connect.
+
+Use telnet, putty or your favorite telnet client to connect to CP-V on a selected mux port and send the break command.  You will be assigned to the next available line and receive the salutation;
 
 HI, TCP-V HERE - ANDREWS C0F
 09:55 AUG 23,'80 ON WEST   USER# C     LINE# 6  
 LOGON PLEASE: 
 
-The f00 systems are generated with non-hardwired terminals attached to mux port 4003 and will present the logon salutation when they connect.
+
 
 ## Boot from disc
 You can boot CP-V from the swap disc with the simh boot command addressed to the attached swap device.  Each time you reboot you will need to do the ON 107 and other setup keyins.
