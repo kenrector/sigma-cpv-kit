@@ -6,7 +6,7 @@ This repository contains files and documentation that can be used to install and
 
 The f00 version is Honeywell Release F00 from September 28, 1978.  There are two f00 system configurations, a disk swapper and a rad swapper.
 
-These CP-V systems will run on any of the released simh versions, Classic simh V3.12, simh V4 and Open simh V4.1.  Note that there is a difference in the command control language between the three simh versions.
+These CP-V systems will run on any of the released simh versions, Classic simh V3.12, simh V4 and Open simh V4.1.  Note that there is a difference in the command control language between the three simh versions.  Also, simh V3.12 does not support attaching individual mux lines.
 
 ## Files
 
