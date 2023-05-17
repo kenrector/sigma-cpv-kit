@@ -22,6 +22,7 @@ f00/cpf0/cpf0.ini | is a simh initialization file.
 f00/cpf0/cpf0.tap | is a bootable CP-V F00 PO tape.
 f00/f00rad/cpf0.ini | is a simh initialization file.
 f00/f00rad/f00rad.tap | is a bootable CP-V F00 PO tape.
+pasc.tap | PASCAL from Montana State University
 cpcpdoc.txt | is a description of installing and running CP-V using siggy, a dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
 lcmcpv00.pdf, lcmcpv01.pdf | provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | is a bootable diagnostic progam also provided from Keith Calkins' archive.  This doesn't run under CP-V, just boot it from mt0.
