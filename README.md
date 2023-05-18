@@ -22,7 +22,6 @@ f00/cpf0/cpf0.ini | A simh V4/V4.1 initialization file for a disk swapper system
 f00/cpf0/cpf0.tap | A bootable CP-V F00 PO tape.  This is a disk swapper system with two file system disks.
 f00/f00rad/cpf0.ini | A simh V4/V4.1 initialization file for a RAD swapper system.
 f00/f00rad/f00rad.tap | A bootable CP-V F00 PO tape.  This is a RAD swapper system with two file system disks.
-pasc.tap | PASCAL from Montana State University.  CP-V labeled tape, LT#PASC.058.
 cpcpdoc.txt | An example of installing and running CP-V on the SIGGY dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
 lcmcpv00.pdf, lcmcpv01.pdf | Documents to provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | A stand-alone bootable diagnostic progam.  Start simh with one of the above .ini files and boot this from mt0.
