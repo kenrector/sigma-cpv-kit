@@ -13,7 +13,7 @@ These CP-V systems will run on any of the released simh versions, Classic simh V
 File | Description
 ---- | ----
 cpcp/ | A folder containing files to support the CP-V cpcp release from Andrews University.
-cpcp/cpcp.tap | A bootable CP-V PO tape configured for Andrews University Computer Center.
+cpcp/cpcp.tap | A bootable CP-V PO tape from Andrews University Computer Center, ca. 1997.
 cpcp/sigma.ini | A simh V4/V4.1 initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration.
 cpcp/sigma-v3.ini | A simh V3.12 initialization file.
 cpcp/cpcpswap.zip |  A swapper disk image.
