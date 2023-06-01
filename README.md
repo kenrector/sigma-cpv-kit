@@ -16,6 +16,8 @@ cpcp/ | A folder containing files to support the CP-V cpcp release from Andrews 
 cpcp/cpcp.tap | A bootable CP-V PO tape configured for Andrews University Computer Center.
 cpcp/sigma.ini | A simh V4/V4.1 initialization file containing hardware definition and attach commands to setup the simulator to match the Andrews University CP-V configuration.
 cpcp/sigma-v3.ini | A simh V3.12 initialization file.
+cpcp/cpcpswap.zip |  A swapper disk image.
+cpcp/cpcpsys.zip |  A system disc image.
 f00/ | A folder containing files to support the CP-V F00 release. There are two subfolders, a Disc Pack swapper system and a RAD swapper system.
 f00/$SUPER | Commands to create :SYS,LBE and :F00SGEN,CPV accounts.
 f00/f00disc/cpf0.ini | A simh V4/V4.1 initialization file for a disk swapper system.
