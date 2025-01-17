@@ -21,10 +21,7 @@ SUPER HERE\
 Log off and back on to setup the SYS account.
 
 2.  Restore the compiler and .CLIB accounts from the FRES tapes.
-These will be 30b0.tap and 81b0-2.tap files.  The simh attach
-command expects these files to be in the current directory.
-
-Keep a copy of the FRES restore listing as it will be helpful later.
+These will be 30b0.tap and 81b0-2.tap files.
 
 FRES\
 +VOL\
