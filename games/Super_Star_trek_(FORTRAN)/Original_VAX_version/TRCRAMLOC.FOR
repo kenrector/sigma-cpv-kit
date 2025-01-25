@@ -1,0 +1,9 @@
+      SUBROUTINE CRAMLOC(KEY,IX,IY) 
+      IF(KEY .EQ. 1) CALL CRAM(9H QUADRANT) 
+      IF(KEY .EQ. 2) CALL CRAM(7H SECTOR) 
+      CALL CRAM(1H )
+      CALL CRAMI(IX,0)
+      CALL CRAM(3H - )
+      CALL CRAMI(IY,0)
+      RETURN
+      END 

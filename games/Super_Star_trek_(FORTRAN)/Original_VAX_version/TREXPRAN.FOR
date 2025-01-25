@@ -1,0 +1,4 @@
+      FUNCTION EXPRAN(AVERAGE)
+      EXPRAN=-AVERAGE*ALOG(RANF(0)) 
+      RETURN
+      END 
