@@ -1,4 +1,8 @@
-Building the Super Star Trek executable from Fortran 77 source in CP-V
+## Build Issue
+
+Because of an implementation shortfall this code won't compile with CP-V ANSFORT, so it doesn't run on F00.  Run it on the cpcp Andrews system.
+
+## Building the Super Star Trek executable from Fortran 77 source in CP-V
 
 After booting the SimH Sigma emulator into CP-V, connecting a terminal window via telnet, and logging in, it should be a simple matter of opening the file build_TRTREK in a host system text editor, copying its contents to the host system clipboard, and then selecting the CP-V terminal window and pasting the clipboard contents into the terminal. It will take a while to empty the clipboard into the CP-V terminal window, so be patient. The file build_TRTREK contains: 1) a sequence of Tele-Edit commands to build the 63 F7:TR* Fortran source files in the user's directory; 2) a Tele-Edit command to load the game instructions as text file TX:STARTRK; 3) a sequence of F77 commands to compile 62 of the source files to the corresponding BO:TR* object files (F7:TREKCOM is INCLUDEd by the other source files, and is not itself compiled); 4) a LEMUR (CP-V object librarian) command to build the LB:TRTREK object library from 61 BO:TR* object files (i.e. all the object files except the main routine's object file BO:TRTREK; 5) a LYNX (CP-V linker) command to build the executable TRTREK. from BO:TRTREK and LB:TRTREK; 6) a sequence of DELETE commands to clean up the user directory by removing the F7:TR*, BO:TR*, and LB:TRTREK files. When all this has finished and the CP-V terminal command prompt ("!") has returned, type "L" -- List -- to satisfy yourself that that the TRTREK. Super Star Trek executable and the TX:STARTRK text file have been successfully created.
 
@@ -11,12 +15,12 @@ In Linux, if you're using vim as your text editor, you must have a version that 
 In MacOS, the procedure should be pretty much the same as for Linux.
 
 
-Running the Super Star Trek program
+## Running the Super Star Trek program
 
 Just type "TRTREK." at the CP-V terminal command prompt, and the game will start (NOTE: the "." at the end of the file name is required -- it indicates that the executable -- the "load module" -- is to be found in the local directory).
 
 
-Some tips
+## Some tips
 
 1. Getting output on the lineprinter (i.e., in whatever text file is attached to device "LP" in your SimH configuration file): A) On the SimH CP-V console, after CP-V has booted up (like, just before or after you've typed Ctrl-P, ON 107 <Return>) type Ctrl-P, SLP,I <Return> (to "initiate the lineprinter symbiont"); B) On the logged-in terminal, before starting the game (at the "!" prompt), type SET F:108 LP <Return> (this ensures that output to LUN -- logical unit -- 108 in Fortran is directed to the printer); C) After the game has ended and you're back at the "!" prompt, type PRINT <Return> to flush out the CP-V printer queue; D) Remember that SimH's LP buffer won't actually be flushed out to the attached text file until SimH itself exits.
 
@@ -25,7 +29,7 @@ Some tips
 3. The source file F7:TRDEBUG is an addition to the original VAX complement, and was created in order to add some commands that facilitated testing the game without actually being able to play it very well. In particular, the "DEBUG" command was a generic command that could be attached to any subroutine that needed to be tested. In its final state, it calls the subroutine that generates a commemorative plaque (see the file "plaque.dat" in the "Original_VAX_version" directory), which can appear either on the terminal or on the lineprinter (if the latter has been set up properly). Unlike the VAX version of the plaque, the CP-V version has a hard-coded date (April Fool's Day, 2016).
 
 
-History
+## History
 
 In early 2016, following a successful attempt to "back-port" Mike Mayfield's HP BASIC version of the Star Trek text-based computer game to CP-V (on the late George Plue's DOS-based "Siggy" Sigma/CP-V emulator), Keith Calkins (Plue's erstwhile colleague at Andrews University) mentioned that students at Andrews had once run a Fortran version of a Star Trek game on the campus Sigma. After some searching, a Fortran Star Trek was discovered on the Web site of one Oleg Uryutin, who had been a student in the early 80s at the Minsk Radiotechnical Institute and had fond memories of discovering a PDP-11 version of Star Trek and who, with the help of a colleague there, had ported the game from RT-11 to RSX-11M on the PDP-11. His site (which is now, alas, defunct and not even archived on the Wayback Machine) had the source code for a VAX Fortran version of the University of Texas "Super Star Trek", which turned out to be possible to port to F77 on CP-V.
 
