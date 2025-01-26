@@ -26,6 +26,9 @@ f00/f00disc/f00disc-system.zip | disc, sys1 and sys2 files.
 f00/f00rad/cpf0.ini | A simh V4/V4.1 initialization file for a RAD swapper system.
 f00/f00rad/f00rad.tap | A bootable CP-V F00 PO tape.  This is a RAD swapper system with two file system disks.
 f00/f00rad/f00rad-system.zip | rad, sys1 and sys2 files.
+games/ | A folder containing game programs related to CP-V.
+games/Star_Trek_(BASIC) | Code based on Mike Mayfield's original Star Trek game from 1972-1973.
+games/Super_Star_Trek_(FORTRAN) | Code originally from the University of Texas for the VAX.
 cpcpdoc.txt | An example of installing and running CP-V on the SIGGY dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
 lcmcpv00.pdf, lcmcpv01.pdf | Documents to provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum to install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | A stand-alone bootable diagnostic progam.  Start simh with one of the above .ini files and boot this from mt0.
