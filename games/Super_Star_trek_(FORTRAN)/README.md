@@ -1,6 +1,8 @@
 ## Build Issue
 
-Because of an implementation shortfall this code won't compile with CP-V ANSFORT, so it doesn't run on F00.  Run it on the cpcp Andrews system.
+Because of an implementation shortfall this code won't compile with CP-V ANSFORT, so it doesn't run on F00.  
+
+Run it on the cpcp Andrews system.
 
 ## Building the Super Star Trek executable from Fortran 77 source in CP-V
 
