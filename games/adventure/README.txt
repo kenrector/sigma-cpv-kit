@@ -1,15 +1,12 @@
-Assumes we put 29F0.tap.zip archive tape in sigma-cpv-kit/f00!!!!!
+# Adventure
 
-
-Adventure
-
-Introduction:
+## Introduction:
 
 Adventure is a text-based exploration game originally developed in the 1970's for the PDP-10 mainframe.  There were many different iterations of the game for different platforms over the years.  The source code isn't necessarily portable from one machine type to another due to differing word lengths, FORTRAN or BASIC language syntax quirks and text characters (ASCII? EBCDIC? BCD?).
 
 Dave Platt at the Honeywell LADC created and released CP-V Adventure in 1979.  This version, distributed on the monthly CP-V SST patch tapes, was written in CP-V ANS Fortran.  If your implementation of CP-V doesn't have the ANS FORTRAN compiler, it is relatively simple to install from the release tapes - see Note 0 below.
 
-Installation:
+## Installation:
 
 The Adventure files are available on the November, 1981 SST tape available in the sigma-cpv-kit directory.  Installation consists of copying 37 files from the SST tape down to your CP-V directory and then running 3 batch jobs to build the Adventure Translator (ADVT) and Interpreter (ADVI) programs.
 
@@ -59,7 +56,7 @@ Three of the files that you downloaded are batch JCL that will be used to execut
 
 Once all of the jobs have completed without errors. sit back, relax and type in ADV.account (unless you installed it in :SYS for which only ADV is needed).
 
-Notes:
+## Notes:
 
 Note 0: If you don't have the ANS FORTRAN compiler installed on your CP-V system, you'll need to copy the ANSFORT module from the .CPVPROC account on the release tape to your :SYS account.  Use the 00f0.tap SIMH tape file unzipped from F00-00F0.tap.zip (located in sigma-cpv-kit/f00) and enter the following PCL commands: 
 
