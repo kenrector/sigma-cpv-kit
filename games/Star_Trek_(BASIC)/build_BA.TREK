@@ -17,6 +17,7 @@ BASIC
 140  REM ***        TOTAL INTERACTION GAME - ORIG. 20 OCT 1972
 150  REM ***                                                           ***
 160  REM *****************************************************************
+165  R0=RND(1)
 170  GOSUB 5460
 180  PRINT "                          STAR TREK "
 190  PRINT "DO YOU WANT INSTRUCTIONS (THEY'RE LONG!)";
