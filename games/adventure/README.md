@@ -62,7 +62,11 @@ In PRIMESI, change the value of ENABLED on line 100 as follows:
 Before: ENABLED  DATA     0                 * SET TO NONZERO FOR PRIME-TIME USE  100.000  
 After:  ENABLED  DATA     1                 * SET TO NONZERO FOR PRIME-TIME USE  100.000
 </pre>
-Three of the files that you downloaded are batch JCL that will be used to execute the ANS FORTRAN compiler and AP assembler.  In the following order, run ...
+Three of the files that you downloaded are batch JCL that will be used to execute the ANS FORTRAN compiler and AP assembler.  
+
+Warning, before you start running these you should be aware that the LIMIT command CO option in ADVJOB and MUNGEJOB is too low and will cause those jobs to abort.  You can avoid this by setting CO to 64 in each job.  Also look ahead here to note 2 below, that describes the requirement for the FLIBMODE module.
+
+Then, in the following order, run ...
 <pre> 
 !BATCH ADVJOB  
 !BATCH MUNGEJOB  
