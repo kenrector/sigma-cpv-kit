@@ -34,8 +34,14 @@ FRES\
 +END
 
 4.  Make copies of DRSP, LYNX and LOADER IN :SYS to a scratch account
-and patch them to allow use of the library name :PC and :PCC
-to avoid the :Pnn name restriction of F00.
+and patch them to allow use of the library name :PC and :PCC.  This will
+avoid the :Pnn name restriction of F00.
+
+If DRSP complains about the name format even after the patch, do a 
+GENMD LIST to be sure the patch is installed.  If that looks good,
+perhaps DRSP is being run from the shared processor version 
+on the swapper.  Try DRSP  DROP DRSP and then run DRSP.:SYS to get the 
+patched version.
 
 C DRSP TO DRSP.KEN\
 GENMD DRSP.:SYS\
@@ -48,13 +54,12 @@ GENMD LYNX.:SYS\
 END
 
 C LOADER OVER LOADER.KEN\
-GENMD LOADER\
+GENMD LOADER.:SYS\
 PS1, +AB70,227FFF00\
 END
 
 5. Install CCX and :PCC in the shared processor tables.
 See J:INSTALL.CCXA00JC script.
-
 
 DRSP\
         DROP CCX,PERM\
@@ -65,7 +70,7 @@ DRSP\
 
 6. Copy the compiler and other programs to :SYS.
  
-PCL
+PCL\
          COPY :PC.CCLA00SP    OVER :PC.:SYS(RD(ALL))\
          COPY SP:CC.CCXA00SP  OVER CC.:SYS(EX(ALL))\
          COPY SP:CCX.CCXA00SP OVER CCX.:SYS(EX(ALL))\
@@ -148,16 +153,18 @@ C :PC.KEN OVER :PC.:SYS
 
 8.  Compile the sample HELLO WORLD program.  The :PCC library
 must be installed as a shared library to run the complier
-and the run unit.  The message
-
-  AA00 WHAT PUBLIC LIBRARY?
-
-from CC indicates the :PCC library was not installed during
-step 5.  Go back and do that again.
+and the run unit.
 
 CC HELLO-C.CCXA00XX BO:HELLO.KEN
 
-9. Link the rom with the :PC library and produce a load map.
+ If you get the message
+
+  AA00 WHAT PUBLIC LIBRARY?
+
+from CC it indicates the :PCC library was not installed during
+step 5.  Go back and do that again.
+
+10. Link the rom with the :PC library and produce a load map.
 
 LYNX (PC)BO:HELLO.KEN OVER LMN.KEN;.CLIB (M)
 
