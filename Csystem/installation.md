@@ -182,4 +182,15 @@ section.
 !LMN.KEN\
  hello world
 
+# USAGE NOTES
+
+## Interface to CP-V.
+### Lower Case
+Be aware that F00 AP does not accept lower case characters.  Don't write assembly language
+code with lower case characters.
+
+### Inline Asembly Code
+There seems to be a bug in the compiler ca module that causes it to abort when the
+asm() feature is used.
+
 
