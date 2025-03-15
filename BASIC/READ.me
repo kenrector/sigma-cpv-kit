@@ -1,1 +1,29 @@
-this is 
+This is the basic-706101011D00 labeled tape from the SDS User group library.
+
+The label is BASD and the account is APL.
+
+It contains source code and an executable BASIC.
+
+I created an APL,CPV user logon so I could delete previous files from the .APL
+account.  Then did a PCL DELETEALL.  Be carefull to not use :SYS account 
+when doing DELETE all.
+
+Create an APL account like this:
+!SUPER
+SUPER HERE 
+-C APL,CPV
+-- B$PR=80;O$PR=80
+-- BMCO=64;OMCO=64
+-- BM9T=1;OM9T=1
+-- BMPDIS=32000;OMPDIS=32000
+-- BMTIME=999
+-- BMLO=9999;OMLO=9999
+--
+-END
+
+Log on to APL,CPV
+
+Use PCL COPYALL LT#BASD .APL
+
+Raise an issue if you have trouble and I'll try to help.
+
