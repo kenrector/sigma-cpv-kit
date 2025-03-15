@@ -32,7 +32,8 @@ games/Super_Star_Trek_(FORTRAN) | Code originally from the University of Texas f
 cpcpdoc.txt | An example of installing and running CP-V on the SIGGY dos based simulator written by Keith and George Plume in th 90's.  Simh procedures will be different to siggy but the CP-V interactions will be the same.
 lcmcpv00.pdf, lcmcpv01.pdf | Documents to provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum to install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | A stand-alone bootable diagnostic progam.  Start simh with one of the above .ini files and boot this from mt0.
-mt2tap.c | A program to translate .mt files to .tap.
+mt2tap.c | A program to translate .mt files to .tap format.
+util-M500.tap | A tape from the SDS User Group Library containing utility programs.
 ## Installation
 These instructions describe how to install CP-V from a PO tape.  The repository WIKI page contributed by Madhu Siddalingaiah also contains installation information.
 
