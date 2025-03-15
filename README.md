@@ -33,7 +33,7 @@ cpcpdoc.txt | An example of installing and running CP-V on the SIGGY dos based s
 lcmcpv00.pdf, lcmcpv01.pdf | Documents to provide an overview of CP-V.  This material was prepared by Keith to assist the Living Computer Museum to install and bring up CP-V on a Sigma 9 computer system.
 MTLU00.tap | A stand-alone bootable diagnostic progam.  Start simh with one of the above .ini files and boot this from mt0.
 mt2tap.c | A program to translate .mt files to .tap format.
-util-M500.tap | A tape from the SDS User Group Library containing utility programs.
+util-M500.tap | A tape from the SDS User Group Library containing utility programs.  You can find the SDS PAL (Program Availability List) at http://www.bitsavers.org/pdf/sds/Xerox_Program_Availability_List_May75.pdf
 ## Installation
 These instructions describe how to install CP-V from a PO tape.  The repository WIKI page contributed by Madhu Siddalingaiah also contains installation information.
 
