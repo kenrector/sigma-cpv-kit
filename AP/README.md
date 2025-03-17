@@ -1,3 +1,7 @@
-This is the AP assembler.
+This is the AP assembler catalog #705888.
 
-This includes some JCL, source and binary object files
+The label is APCA and the account is :SYSGEN.
+
+Use  PCL  COPYALL LT#APCA.:SYSGEN TO .:SYSGEN
+
+This includes JCL, source and binary object files.
