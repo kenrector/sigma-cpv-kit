@@ -1,0 +1,3984 @@
+        PAGE
+*
+*   modified for AP assembler - 3/26/25  - kdr
+*
+*
+*
+*                       G O R D O   M A S T E R
+*
+*         C O M M A N D   L A N G U A G E   P R O C E S S O R
+*
+*
+*
+*                 AUTHOR    --  KELLY BOOTH  (JUNE 1, 1969)
+*
+*                 MODIFIED  --  KELLY BOOTH  (APRIL 5, 1972)
+*
+*                 MODIFIED  --  C. S. WETHERELL (JUNE 30, 1972)
+*                 CONVERT XPL SUBMONITOR SO THAT XPL IS COMPLETELY IN
+*                 ASCII, RATHER THAN PARTIALLY IN EBCDIC.
+*
+*                 MODIFIED  --  J. BOLSTAD  (9-7-72)
+*                 ADDED FEATURES TO XPL SUBMONITOR:
+*                 (1) OPTION TO AVOID ENTERING COMPILER SCRATCH FILES
+*                     IN ROOT DIRECTORY
+*                 (2) OUTPUT ALL OF XPL LINE TO THE SCREEN, NOT JUST
+*                     FIRST 79 CHARACTERS
+*                 (3) THE SEARCH FOR CONTROL CHARACTERS IN XPL WRITE
+*                     TEXT IS MUCH FASTER.
+*
+*
+*
+*
+         PAGE
+*
+*                 REGISTER EQUIVALENCES
+*
+R0       EQU      0
+R1       EQU      1
+R2       EQU      2
+R3       EQU      3
+R4       EQU      4
+R5       EQU      5
+R6       EQU      6
+R7       EQU      7
+R8       EQU      8
+R9       EQU      9
+R10      EQU      10
+R11      EQU      11
+R12      EQU      12
+R13      EQU      13
+R14      EQU      14
+R15      EQU      15
+*
+         PAGE
+*
+*
+*
+*                 *************************************
+*                 *                                   *
+*                 * GORDO SYSTEM CALL TRANSFER VECTOR *
+*                 *                                   *
+*                 *************************************
+*
+*
+*
+G:SYSRTN EQU      $+X'1E000'
+G:COUPLE EQU      $+X'1E001'
+G:CREATE EQU      $+X'1E002'
+G:ENTER  EQU      $+X'1E003'
+G:OPEN   EQU      $+X'1E004'
+G:CLOSE  EQU      $+X'1E005'
+G:FORK   EQU      $+X'1E006'
+G:PRINT  EQU      $+X'1E007'
+G:READ   EQU      $+X'1E008'
+G:SETABR EQU      $+X'1E009'
+G:GIVEUP EQU      $+X'1E00A'
+G:WAKEUP EQU      $+X'1E00B'
+G:SLEEP  EQU      $+X'1E00C'
+G:ATTACH EQU      $+X'1E00D'
+G:DETACH EQU      $+X'1E00E'
+G:TIME   EQU      $+X'1E00F'
+G:INSERT EQU      $+X'1E010'
+G:DELETE EQU      $+X'1E011'
+G:MODIFY EQU      $+X'1E012'
+G:STATUS EQU      $+X'1E013'
+G:MOVEIO EQU      $+X'1E014'
+G:LOCK   EQU      $+X'1E015'
+G:UNLOCK EQU      $+X'1E016'
+G:REALAD EQU      $+X'1E017'
+G:FORKJ  EQU      $+X'1E018'
+G:CRJOB  EQU      $+X'1E019'
+G:DLJOB  EQU      $+X'1E01A'
+G:KLPRC  EQU      $+X'1E01B'
+G:KLJOB  EQU      $+X'1E01C'
+G:INTPRC EQU      $+X'1E01D'
+G:STPPRC EQU      $+X'1E01E'
+G:READQ  EQU      $+X'1E01F'
+G:SETQ   EQU      $+X'1E020'
+G:CHGENT EQU      $+X'1E021'
+G:LPEN   EQU      $+X'1E022'
+G:EDGE   EQU      $+X'1E023'
+G:MRKDWN EQU      $+X'1E024'
+G:SYSTRP EQU      $+X'1E025'
+G:SETINT EQU      $+X'1E026'
+G:SVC    EQU      $+X'1E027'
+G:RESET  EQU      $+X'1E028'
+G:STRPRC EQU      $+X'1E029'
+G:SETPSD EQU      $+X'1E02A'
+G:ASSIGN EQU      $+X'1E02B'
+G:ASSINP EQU      $+X'1E02C'
+G:FINPRC EQU      $+X'1E02D'
+G:CLOCK  EQU      $+X'1E033'
+G:PMT    EQU      $+X'1E200'
+G:MSGCNT EQU      $+X'1E319'
+G:MSGBFR EQU      $+X'1E31A'
+G:INTPSW EQU      $+X'1E313'
+G:ABRNUM EQU      $+X'1E315'
+G:ABRPSW EQU      $+X'1E316'
+G:PRCNUM EQU      $+X'1E34C'
+G:JOBNUM EQU      $+X'1E34E'
+G:SECURE EQU      $+X'1E350'
+G:ASLIFE EQU      $+X'1E351'
+*
+         PAGE
+*
+*
+*
+COUPLE   COM,8,8,16 AF(1),AF(2),AF(3)
+CREATE   COM,2,2,1,3,4,4,16 AF(1),0,AF(2),AF(3),AF(4),AF(5),AF(6)
+OPEN_    COM,4,4,1,6,17,2,30 AF(1),AF(2),AF(3),0,AF(4),AF(5),0
+STKPTR   COM,1,15,1,15 AF(1),AF(2),AF(3),AF(4)
+*
+KYWPRG   EQU      1                 RUNNING PROGRAM
+KYWLIB   EQU      2                 FORTRAN LIBRARY
+KYWUTL   EQU      3
+KYWSCR   EQU      10
+KYWCLP   EQU      11
+KYWRTD   EQU      12
+KYWCMP   EQU      14
+*
+KBL      EQU      X'40'       X'00'             BLANK
+KPS      EQU      X'7B'       X'03'             POUND SIGN
+KCM      EQU      X'6B'       X'0C'             COMMA
+KPER     EQU      X'4B'       X'0E'             PERIOD
+KSC      EQU      X'5E'       X'1B'             SEMI-COLON
+KLB      EQU      X'BA'       X'1C'             LEFT BRACKET
+KEQ      EQU      X'7E'       X'1D'             EQUAL SIGN
+KLA      EQU      X'4C'       X'3F'             LEFT ARROW
+KCR      EQU      X'0D'       X'8F'             CARRIAGE RETURN
+KEX      EQU      X'27'       X'A8'             ESCAPE CHARACTER
+*
+HDRPAGE  EQU      0                 PAGE NUMBER FOR FILE HEADER
+*
+         PAGE
+*
+*
+*
+*        ********************
+*        *                  *
+*        * BOOTSTRAP LOADER *
+*        *                  *
+*        ********************
+*
+*
+*
+         ORG      X'200'
+*
+BTSKYM   GEN,8,24 X'0F',0
+BTSKYW   GEN,8,24 KYWCLP,0
+BTSOPM   OPEN_    KYWRTD,KYWCLP,0,$+1,1
+         TEXT     '   MASTER    '
+BTSOPP   OPEN_    KYWRTD,KYWCLP,0,$+1,2
+         TEXT     '   PUBLIC    '
+BTSOPX   OPEN_    KYWCLP,KYWCLP,0,$+1,1
+         TEXT     '   MASTER    '
+*
+BTSBGN   RES      0
+         LI,R1    $
+         SAS,R1   -9
+         LW,R0    G:PMT,R1
+         AND,R0   BTSKYM
+         CW,R0    BTSKYW
+         BE       BTSLDR
+*
+         LW,R13   BTSOPM
+         BAL,R14  G:OPEN            TRY TO OPEN 'MASTER' FROM 'ROOT'
+         BEZ      BTSLDR            ALL SET IF FOUND
+         LW,R13   BTSOPP
+         BAL,R14  G:OPEN            OTHERWISE OPEN PUBLIC
+         BNEZ     G:FINPRC
+         LW,R13   BTSOPX
+         BAL,R14  G:OPEN            THEN TRY AGAIN
+         BNEZ     G:FINPRC
+*
+BTSLDR   RES      0
+         LI,R1    6                 +++ VERY IMPORTANT +++
+         LI,R0    WRKLWA
+         SAS,R0   -9
+         STH,R0   R1
+         LI,R0    KYWCLP
+         STB,R0   R1
+         LI,R0    WRKFWA
+         AI,R0    -X'1E000'
+         SAS,R0   -9
+*
+BTSCPL   RES      0
+         LW,R13   R1
+         BAL,R14  G:COUPLE
+         AI,R1    X'10001'
+         BIR,R0   BTSCPL
+*
+         B        NLZMST
+*
+         PAGE
+*
+*                 XPL WORKING AREA
+*
+*
+XPLSTK   EQU      X'1CE00'          XPL STACK PAGE
+XPLBIN   EQU      X'1A000'          XPL BINARY PAGE
+XPLMAP   EQU      X'1A000'          XPL TEXT MAP PAGE
+XPLDATA  EQU      X'1B200'          XPL TEXT DATA PAGE
+*
+         PAGE
+*
+*
+*
+*                 *****************
+*                 *               *
+*                 * WORKING PAGES *
+*                 *               *
+*                 *****************
+*
+*
+*
+         ORG      X'400'
+         LOC      X'1D000'
+*
+SCRLD1   EQU      $$
+SCRPG1   RES      0
+*
+SCRLD2   EQU      $$
+SCRPG2   RES      512
+*
+WRKLDA   EQU      $$
+WRKFWA   RES      0
+*
+           PAGE
+*
+*
+*
+*                 *******************************
+*                 *                             *
+*                 * EXECUTABLE FILE HEADER PAGE *
+*                 *                             *
+*                 *******************************
+*
+*
+*
+         ORG      SCRLD2
+         LOC      SCRPG2
+*
+XFLHDR   DATA     X'F0F0F0F0'
+XFLFFP   DATA     0
+XFLFVP   DATA     0
+XFLNVP   DATA     0
+XFLXSL   DATA     0
+*
+           PAGE
+*
+*
+*
+*                 ******************
+*                 *                *
+*                 * DIRECTORY PAGE *
+*                 *                *
+*                 ******************
+*
+*
+*
+         ORG      SCRLD2
+         LOC      SCRPG2
+*
+DRCHDR   RES      0
+*
+         PAGE
+*
+*
+*
+*                 ***************************
+*                 *                         *
+*                 * PROCESS DESCRIPTOR PAGE *
+*                 *                         *
+*                 ***************************
+*
+*
+*
+         ORG      SCRLD2
+         LOC      SCRPG2
+*
+PDPPAG   RES      0
+*
+         PAGE
+*
+*
+*
+*                 **************************
+*                 *                        *
+*                 * SCRATCH FILE WORK AREA *
+*                 *                        *
+*                 **************************
+*
+*
+*
+         ORG      WRKLDA
+         LOC      WRKFWA
+*
+IDLNLZ   DATA     0
+*
+XPLMSG   DATA     0                 SAVE FOR SUB-MONITOR ERROR MESSAGE
+XPLREG   RES      16                XPL SUB-MONITOR REGISTER SAVE AREA
+*
+*        FILE CONTROL BLOCKS FOR XPL SUBMONITOR
+*
+NFCB     EQU      10                NUMBER OF LOGICAL UNITS ALLOWED
+*
+FCBUNIT  RES      NFCB              LOGICAL UNIT NUMBER
+FCBTYPE  RES      NFCB              UNIT STATUS FLAGS
+FCBMAP   RES      NFCB              ADDRESS OF MAP PAGE
+FCBDATA  RES      NFCB              ADDRESS OF DATA PAGE
+FCBLINE  RES      NFCB              CURRENT LINE NUMBER
+FCBNEXT  RES      NFCB              INDEX TO NEXT LINE
+FCBPAGE  RES      NFCB              CURRENT DATA PAGE NUMBER
+FCBOPN   OPEN_    0,0,0,$+1,0
+         TEXT     '   XPL-FILE  '
+*
+FCB:USED EQU      X'80'             UNIT ASSIGNED
+FCB:ROOT EQU      X'40'             DO NOT ENTER IN ROOT DIRECTORY
+FCB:NEW  EQU      X'20'             CREATE NEW FILE
+FCB:FRMT EQU      X'10'             FORMAT CONTROL
+FCB:OUT  EQU      X'08'             OUTPUT
+FCB:IN   EQU      X'04'             INPUT
+FCB:TEXT EQU      X'02'             TEXT FILE
+FCB:FILE EQU      X'01'             FILE/CONSOLE (1 IF CONSOLE)
+*
+USRSWT   DATA     0                 USER SWITCH
+USRPSW   DATA     0                 USER'S PROGRAM STATUS WORD
+USRINS   DATA     0
+USRREG   RES      16                USER'S REGISTERS
+USRMCT   DATA     0                 USER'S MESSAGE BUFFER COUNT
+USRMBF   RES,1    128               USER'S MESSAGE BUFFER
+*
+NLZSWT   DATA     0                 MASTER/FORK SWITCH
+*
+TRPSWT   DATA     0                 ABORT/INTERRUPT SWITCH
+*
+BRKNUM   DATA     0                 NUMBER OF BREAK POINT
+BRKLOC   RES      16                LOCATIONS OF BREAK POINTS
+BRKVAL   RES      16                CONTENTS OF BREAK POINTS
+*
+CMDSWT   DATA     0
+CMDMNT   DATA     0                 MONITOR MODE SWITCH
+*
+WRTSWT   DATA     0                 BLANK SWITCH FOR OUTPUT
+WRTPTR   DATA     0                 OUTPUT BUFFER POINTER
+WRTBFR   RES,1    80                OUTPUT BUFFER
+*
+ESCSWTCH RES      1                 ESCAPE CHARACTER FLAG
+TKNSWT   DATA     0
+TKNBFR   RES,1    8
+*
+SCNWRK   RES      3
+SCNCMS   DATA     0                 SCANNER COMMA SWITCH
+SCNPTR   DATA     0                 POINTER TO CHAR. IN SCANNER BUFFER
+SCNEOL   DATA     0
+SCNCNT   DATA     0
+SCNXSC   DATA     0                 ESCAPE CHARACTER SWITCH
+SCNSWT   DATA     0
+SCNBFR   RES,1    80                BUFFER FOR SCANNER
+*
+FNMCNT   DATA     0
+FNMSWT   DATA     0                 FILE NAME SWITCH
+FNMBFR   RES,1    12                FILE NAME BUFFER
+FNMBLK   DATA     0                 BLANK FILE NAME SWITCH
+*
+EXPBLK   DATA     0                 BLANK EXPRESSION SWITCH
+EXPSWT   DATA     0                 EXPRESSION SWITCH
+*
+MNPPRC   DATA     0
+MNPCAL   DATA     $+1,0
+         TEXT     '   FILENAME  '
+*
+FRTSWT   DATA     0
+FRTABR   DATA     0,0
+*
+SHWBFR   TEXTC    'FILENAME   '
+SHWKYW   DATA     0
+SHWCNT   DATA     0
+SHWSWT   DATA     0
+SHWOPD   DATA     X'C0000000'
+         TEXT     '   FILENAME  '
+*
+OPNLDR   DATA     0
+OPNDEL   DATA     0
+OPNACC   DATA     0                 ACCESS OF FILE
+OPNKYW   DATA     0                 KEYWORD FOR FILE
+OPNDIR   DATA     0                 KEYWORD FOR FILE
+OPNSWT   DATA     0                 OPEN SWITCH
+OPNARG   OPEN_    0,0,0,$+1,0
+         TEXT     '   FILE NAME'
+*
+         BOUND    8
+SYSVAL   DATA     SYSREG-1
+         DATA,2   10,0
+SYSREG   RES      10
+SYSBAL   DATA     0
+*
+SVCSWT   DATA     0
+*
+XECSWT   DATA     0                 GO/PROCEED SWITCH
+*
+LDRSWT   DATA     0                 EXECUTE/LOAD SWITCH
+*
+MSGSWT   DATA     0                 EXIT WITH COMMAND SWITCH
+*
+         BOUND    8
+WRKSTK   DATA     WRKSTK+1
+         STKPTR   1,WRKSIZ,1,0
+*
+         BOUND    2048
+*
+WRKLWA   RES      0
+*
+WRKSIZ   EQU      WRKLWA-WRKSTK-2
+*
+         PAGE
+*
+*
+*
+*                 *******************
+*                 *                 *
+*                 * OUTPUT MESSAGES *
+*                 *                 *
+*                 *******************
+*
+*
+*
+*                                   HENCEFORTH ALL LOCATIONS ARE AT
+*                                   READ-ONLY ACCESS.
+*
+MSGINT   TEXTC    'INTERRUPT'
+MSGERR   TEXTC    'ERROR'
+MSGABR   TEXTC    'ABORT'
+MSGBRK   TEXTC    'BREAK'
+MSGCMD   TEXTC    'UNRECOGNIZED  COMMAND'
+MSGEXP   TEXTC    'INVALID  EXPRESSION'
+MSGFNM   TEXTC    'INVALID  FILE NAME'
+MSGIBP   TEXTC    'INVALID  BREAKPOINT'
+MSGBRZ   TEXTC    'NOT  SET'
+MSGSHW   TEXTC    'CANNOT  DELETE FILE'
+MSGOPN   TEXTC    'CANNOT  OPEN NAMED FILE'
+MSGPSD   TEXTC    'PSD  ='
+MSGLD1   TEXTC    'FILE  IS NOT EXECUTABLE'
+MSGLD2   TEXTC    'COUPLE  ERROR LOADING'
+MSGLD3   TEXTC    'LIBRARY  IS NOT EXECUTABLE'
+MSGLD4   TEXTC    'COUPLE  ERROR LOADING LIBRARY'
+MSGPRC   TEXTC    'PROCESS'
+MSGFLR   TEXTC    'CANNOT  OPEN DIRECTORY'
+MSGFRR   TEXTC    'ERROR  IN FORK'
+MSGMNP   TEXTC    'CANNOT  MAKE ENTRY IN DIRECTORY'
+MSGARG   TEXTC    'TOO  MANY ARGUMENTS'
+MSGKIL   TEXTC    'HAS  BEEN KILLED'
+MSGREQ   TEXTC    'REQUESTS  SERVICE'
+MSGPBR   TEXTC    'HAS  BEEN BROKEN'
+MSGSYS   TEXTC    'VALUE  ='
+MSGFRK   TEXTC    'HAS  BEEN FORKED'
+MSGEXT   TEXTC    'END  OF EXECUTION'
+MSGBGN   TEXTC    'BEGIN  EXECUTION'
+MSGIDL   TEXTC    'MASTER  PROCESS IN CONTROL'
+MSGLIB   TEXTC    'CANNOT  OPEN FORTRAN LIBRARY'
+MSGXP1   TEXTC    'ILLEGAL  XPL SUBMONITOR CALL'
+MSGXP2   TEXTC    'NORMAL  EXIT FROM XPL'
+MSGXP3   TEXTC    'ERROR  EXIT FROM XPL'
+MSGXP4   TEXTC    'ERROR  IN XPL BINARY READ/WRITE'
+MSGXP5   TEXTC    'ERROR  IN XPL TEXT READ'
+MSGXP6   TEXTC    'ERROR  IN XPL TEXT WRITE'
+MSGXP7   TEXTC    'ILLEGAL  XPL I/O UNIT'
+MSGXP8   TEXTC    'DIAGNOSTIC  VALUE ='
+MSGXP9   TEXTC    'SOURCE  LINE NUMBER ='
+MSGXP10  TEXTC    'BEGIN  XPL TRACE MODE (UNIMPLEMENTED)'
+MSGXP11  TEXTC    'TERMINATE  XPL TRACE MODE'
+MSGXP12  TEXTC    'FILE'
+MSGXP13  TEXTC    'ASSIGNED  TO UNIT'
+MSGXP14  TEXTC    ',  FILE TYPE'
+MSGXP15  TEXTC    'FILE  XPL-INPUT IS MISSING'
+MSGXP16  TEXTC    'FILE  XPL-SIGLIB IS MISSING'
+*
+         PAGE
+*
+*
+*
+*
+*
+*
+*                 *******************
+*                 *                 *
+*                 * READ-ONLY DATA  *
+*                 *                 *
+*                 *******************
+*
+*
+*
+*
+*                 THIS TABLE IS USED FOR ESCAPE CHARACTERS.
+*
+TTBSTABL DATA     X'00000000',X'00000000',X'00000000',X'00000000'  0 - F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 10 - 1F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 20 - 2F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 30 - 3F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 40 - 4F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 50 - 5F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 60 - 6F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 70 - 7F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000001' 80 - 8F
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' 90 - 9F
+         DATA     X'00000000',X'00000000',X'01000000',X'00000000' A0 - AF
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' B0 - BF
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' C0 - CF
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' D0 - DF
+         DATA     X'00000000',X'00000000',X'00000000',X'00000000' E0 - EF
+         DATA     X'00000000',X'00000000',X'00000000',X'01010101' F0 - FF
+*
+         PAGE
+*
+*
+*
+*
+*                 ******************
+*                 *                *
+*                 * INITIALIZATION *
+*                 *                *
+*                 ******************
+*
+*
+*
+NLZCSF   CREATE   0,0,0,0,KYWSCR,999
+*
+* ENTRY POINT FOR MASTER PROCESS:
+*
+NLZMST   RES      0
+         LI,R12   1                 (12) <== 1 FOR MASTER
+         B        NLZBGN
+*
+* ENTRY POINT FOR FORKED PROCESS:
+*
+NLZFRK   RES      0
+         LI,R12   0                 (12) <== 0 FOR SLAVE
+NLZBGN   RES      0
+         LW,R13   NLZCSF
+         BAL,R14  G:CREATE          CREATE A SCRATCH FILE
+         BNEZ     $
+         LI,R2    WRKFWA-WRKLWA
+         SAS,R2   -9                NUMBER OF PAGES TO COUPLE
+         LW,R1    R2
+         AI,R1    1000              STARTING FILE PAGE FOR COUPLE
+         LI,R0    WRKFWA
+         SAS,R0   -9
+         STH,R0   R1                 VIRTUAL PAGE NUMBER
+         LI,R0    KYWSCR
+         STB,R0   R1                 KEYWORD
+*
+NLZCPL   RES      0
+         LW,R13   R1
+         AI,R1    X'10001'
+         BAL,R14  G:COUPLE          COUPLE IN WORK PAGES
+         BNEZ     $
+         BIR,R2   NLZCPL
+*
+         STW,R12  NLZSWT            SET MASTER/FORK SWITCH IN WORK AREA
+         LI,R0    -1
+         STW,R0   IDLNLZ
+         STW,R0   FRTSWT
+         LI,R1    -16
+*
+NLZBRK   RES      0
+         STW,R0   BRKLOC+16,R1
+         BIR,R1   NLZBRK
+*
+         B        IDLPRG
+*
+         PAGE
+*
+*
+*
+*                 ****************
+*                 *              *
+*                 * IDLE PROGRAM *
+*                 *              *
+*                 ****************
+*
+*
+*
+         BOUND    8
+IDLSTK   DATA     WRKSTK+1
+         STKPTR   1,WRKSIZ,1,0
+*
+IDLPRG   RES      0
+         LI,R0    0
+         STW,R0   TRPSWT
+         STW,R0   USRSWT
+         LI,R13   TRPABR
+         BAL,R14  G:SETABR          SET ABORT LOCATION
+         LI,R13   TRPINT
+         BAL,R14  G:SETINT          SET INTERRUPT LOCATION
+         LD,R0    IDLSTK
+         STD,R0   WRKSTK            INITIALIZE WORK STACK
+         BAL,R15  WRTRST            RESET OUTPUT BUFFER POINTER
+         MTW,0    NLZSWT            MASTER/FORK SWITCH
+         BLEZ     IDLCHK
+         MTW,1    IDLNLZ
+         BNEZ     IDLCHK
+         LI,R1    BA(MSGIDL)
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+*
+*                       IDLE LOOP LOOKING FOR WORK:
+*
+IDLCHK   RES      0
+         BAL,R15  CMDSCN            DECODE INPUT FOR COMMAND
+         BNEZ     IDLCHK
+         BAL,R15  SVCSCN            CHECK FOR MASTER SERVICE CALLS
+         BNEZ     IDLCHK
+         BAL,R14  G:SLEEP           NO WORK. GO TO SLEEP.
+         B        IDLCHK
+*
+         PAGE
+*
+*
+*
+*                 *****************
+*                 *               *
+*                 * INPUT SCANNER *
+*                 *               *
+*                 *****************
+*
+*
+*
+         BOUND    8
+SCNMV1   DATA     BA(G:MSGBFR)
+         GEN,8,24 80,BA(SCNBFR)
+*
+SCNINP   RES      0
+         LI,R0    0
+         STW,R0   SCNSWT
+         STW,R0   SCNXSC
+         STW,R0   SCNEOL
+         MTW,0    NLZSWT            MASTER/FORK SWITCH
+         BEZ      SCNMVI
+         MTW,0    MSGSWT
+         BNEZ     SCNMBS            IF MESSAGE ALREADY WAITING, GO AHEAD
+         BAL,R14  G:READ            CHECK FOR INPUT LINE
+         BLZ      SCNXIT
+*
+SCNMVI   RES      0
+         LCI      2
+         PSM,R2   WRKSTK
+         LW,R0    G:MSGCNT
+         STW,R0   SCNCNT
+         LD,R2    SCNMV1
+         MBS,R2   0                 GET MESSAGE FROM BUFFER
+*
+SCNMBS   RES      0
+         LI,R0    0
+         STW,R0   MSGSWT            RESET EXIT WITH COMMAND SWITCH
+         LI,R0    BA(SCNBFR)-1
+         STW,R0   SCNPTR            INITIALIZE SCANNER BUFFER POINTER
+         MTW,0    NLZSWT            MASTER/FORK SWITCH
+         BEZ      SCNBMP
+         LI,R13   BA(SCNBFR)
+         LW,R0    SCNCNT
+         STB,R0   R13
+         BAL,R14  G:PRINT
+*
+SCNECH   RES      0
+         MTW,1    SCNSWT
+         LCI      2
+         PLM,R2   WRKSTK
+*
+SCNXIT   RES      0
+         LW,R0    SCNSWT
+         B        *R15
+*
+SCNBMP   RES      0
+         MTW,-1   NLZSWT            MASTER/FORK SWITCH
+         B        SCNECH
+*
+SCNXCH   RES      0
+         MTW,1    SCNXSC            INCREMENT ESCAPE CHAR. SWITCH
+*
+SCNCHR   RES      0                 SCAN CHARACTER
+         XW,R2    SCNPTR
+         MTW,1    R2                INCREMENT POINTER INTO SCAN BUFFER
+         LB,R0    0,R2              GET CHARACTER
+*
+SCNSCK   RES      0
+         MTW,0    SCNXSC            ESCAPE CHAR. SWITCH
+         BNEZ     SCNCHK
+         CI,R0    KSC               SEMICOLON
+         BNE      SCNCHK
+         LI,R0    KCR               CARRIAGE RETURN
+*
+SCNCHK   RES      0
+         LI,R1    0
+         STW,R1   SCNXSC            RESET ESCAPE CHARACTER SWITCH
+         LW,R1    R0
+         CI,R0    KCR               CARRIAGE RETURN
+         BNE      SCNRET
+         MTW,-1   R2                BACK UP POINTER
+         MTW,-1   SCNEOL            SET END-OF-LINE SWITCH
+*
+SCNRET   RES      0
+         XW,R2    SCNPTR
+         MTW,0    SCNEOL            SET RETURN CODE
+         B        *R15              RETURN TO CALLER
+*
+SCNFNB   RES      0
+         XW,R2    SCNPTR
+SCNBLS   RES      0                 SCAN BLANKS
+         MTW,1    R2
+         LB,R0    0,R2
+         CI,R0    KBL               BLANK
+         BE       SCNBLS
+         B        SCNSCK
+*
+SCNSKP   RES      0
+         XW,R2    SCNPTR
+         MTW,0    SCNEOL            CHECK FOR END OF LINE
+         BGZ      SCNSKX
+         LB,R0    0,R2
+         CI,R0    KCM               COMMA
+         BNE      SCNSKB            CHECK FOR A COMMA
+         LI,R0    1
+         STW,R0   SCNCMS            SET COMMA SWITCH
+         MTW,1    R2                BUMP POINTER
+         B        SCNSKX
+*
+SCNSKB   RES      0
+         CI,R0    KBL
+         BNE      SCNSKX            CHECK FOR BLANK
+         XW,R2    SCNPTR
+         PSW,R15  WRKSTK
+         BAL,R15  SCNFNB
+         PLW,R15  WRKSTK
+         CI,R0    KCM               COMMA
+         BE       SCNSKP
+         CI,R0    KCR               CARRIAGE RETURN
+         BE       SCNSKX
+         XW,R2    SCNPTR
+         MTW,-1   R2
+*
+SCNSKX   RES      0
+         XW,R2    SCNPTR
+         B        *R15
+*
+SCNSAV   RES      0
+         PSW,R2   WRKSTK
+         LCI      3
+         LM,R0    SCNCMS
+         LCI      3
+         STM,R0   SCNWRK
+         PLW,R2   WRKSTK
+         B        *R15
+*
+SCNRST   RES      0
+         PSW,R2   WRKSTK
+         LCI      3
+         LM,R0    SCNWRK
+         LCI      3
+         STM,R0   SCNCMS
+         PLW,R2   WRKSTK
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 *******************
+*                 *                 *
+*                 * COMMAND SCANNER *
+*                 *                 *
+*                 *******************
+*
+*
+*
+         BOUND    8
+CMDTBS   RES      0
+         TEXT     'BREAK    '
+         TEXT     'CALL     '
+         TEXT     'CLEAR    '
+         TEXT     'DELETE   '
+         TEXT     'DESTROY  '
+         TEXT     'EXECUTE  '
+         TEXT     'EXIT     '
+         TEXT     'ENTER    '
+         TEXT     'FETCH    '
+         TEXT     'FILES    '
+         TEXT     'GO       '
+         TEXT     'GIVE     '
+         TEXT     'INSPECT  '
+         TEXT     'LIST     '
+         TEXT     'LOADX    '
+         TEXT     'PROCEED  '
+         TEXT     'PSD      '
+         TEXT     'PUNCH    '
+         TEXT     'PUNCHL   '
+         TEXT     'PRINT    '
+         TEXT     'REPLACE  '
+         TEXT     'STEP     '
+         TEXT     'VALUE    '
+         TEXT     'X        '
+         TEXT     'XPL      '
+         TEXT     'ZAP      '
+CMDTBL   DATA     DA(CMDTBS)-DA(CMDTBL)
+*
+         DATA     BREAK
+         DATA     CALL
+         DATA     CLEAR
+         DATA     DELETE
+         DATA     DESTROY
+         DATA     EXECUTE
+         DATA     EXIT
+         DATA     ENTER
+         DATA     FETCH
+         DATA     FILES
+         DATA     GO
+         DATA     GIVE
+         DATA     INSPECT
+         DATA     LIST
+         DATA     LOAD
+         DATA     PROCEED
+         DATA     PSD
+         DATA     PUNCH
+         DATA     PUNCHL
+         DATA     PRINT
+         DATA     REPLACE
+         DATA     STEP
+         DATA     VALUE
+         DATA     EXIT
+         DATA     EXECUTE
+         DATA     ZAP
+CMDPRC   RES      0
+*
+CMDSCN   RES      0
+         LI,R0    0
+         STW,R0   CMDSWT
+         PSW,R15  WRKSTK
+         BAL,R15  SCNINP
+         BEZ      CMDXIT
+         BAL,R15  SCNSAV
+         BAL,R15  SCNFNB
+         BLZ      CMDXIT
+         BAL,R15  SCNRST
+         LI,R0    CMDTBL
+         BAL,R15  TKNEVL
+         BEZ      CMDERR
+         LW,R0    CMDPRC,R1
+         LI,R15   0
+         STW,R15  OPNLDR
+         STW,R15  SCNCMS
+         BAL,R15  *R0
+         BAL,R15  WRTRST            RESET OUTPUT ROUTINES
+         MTW,1    CMDSWT
+*
+CMDXIT   RES      0
+         PLW,R15  WRKSTK
+         LW,R0    CMDSWT
+         B        *R15
+*
+CMDERR   RES      0
+         LI,R1    BA(MSGCMD)
+         B        ERRXIT
+*
+         PAGE
+*
+*
+*
+*                 *****************
+*                 *               *
+*                 * ERROR HANDLER *
+*                 *               *
+*                 *****************
+*
+*
+*
+ERRXIT   RES      0
+         BAL,R15  WRTRST
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+         B        IDLPRG
+*
+         PAGE
+*
+*
+*
+*                 *******************
+*                 *                 *
+*                 * TOKEN EVALUATOR *
+*                 *                 *
+*                 *******************
+*
+*
+*
+TKNEVL   RES      0
+         PSW,R15  WRKSTK
+         LCI      4
+         PSM,R2   WRKSTK            SAVE REGISTERS
+         LW,R4    R0
+         LW,R3    *R4
+         SAS,R4   -1
+         AW,R4    R3
+         SAS,R4   3
+         LI,R0    0
+         STW,R0   TKNSWT
+         LI,R2    0
+         BAL,R15  SCNFNB
+         BLZ      TKNXIT
+*
+TKNCOL   RES      0
+         STB,R0   TKNBFR,R2
+         CI,R2    9
+         BE       TKNXIT
+         MTW,1    R2
+         BAL,R15  SCNCHR
+         BLZ      TKNFND
+         CI,R0    KCM
+         BE       TKNFND
+         CI,R0    KBL
+         BNE      TKNCOL
+*
+TKNFND   RES      0
+         LI,R5    BA(TKNBFR)
+         STB,R2   R5
+         MTW,1    TKNSWT
+         LW,R1    R3
+*
+TKNSCN   RES      0
+         LD,R2    R4
+         AI,R4    8                 BUMP POINTER
+         CBS,R2   0
+         BE       TKNXIT            SEE IF TOKEN IS IN TABLE
+         BIR,R1   TKNSCN
+         MTW,-1   TKNSWT            TOKEN NOT FOUND
+*
+TKNXIT   RES      0
+         LCI      4
+         PLM,R2   WRKSTK            RESTORE REGISTERS
+         PLW,R15  WRKSTK
+         LW,R0    TKNSWT
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 ***********************
+*                 *                     *
+*                 * FILE NAME EVALUATOR *
+*                 *                     *
+*                 ***********************
+*
+*
+*
+FNMCLR   GEN,8,24 10,BA(FNMBFR)
+FNMNLZ   DATA,5   '     '
+*
+FNMEVL   RES      0
+         LW,R1    FNMCLR
+         MBS,R0   FNMNLZ
+         LI,R0    0
+         STW,R0   FNMBLK
+         STW,R0   FNMSWT
+         PSW,R15  WRKSTK
+         PSW,R2   WRKSTK
+         LI,R2    0
+         BAL,R15  SCNFNB
+         BLZ      FNMNUL
+         CI,R0    KCM
+         BE       FNMNUL
+         CI,R0    KBL
+         BE       FNMNUL
+*
+FNMSCN   RES      0
+         CI,R0    KPER              CHECK FOR CONCATENATION
+         BE       FNMDOT
+         CI,R2    10                CHECK FOR FILE NAME TOO LARGE
+         BE       FNMERR
+         CI,R0    KEX
+         BNE      FNMSTF
+         BAL,R15  SCNXCH
+         BLZ      FNMERR
+*
+FNMSTF   RES      0
+         STB,R0   FNMBFR,R2
+         MTW,1    R2
+         BAL,R15  SCNCHR            GET NEXT CHARACTER
+         BLZ      FNMOUT
+         CI,R0    KCM
+         BE       FNMOUT
+         CI,R0    KBL
+         BE       FNMOUT
+         B        FNMSCN
+*
+FNMERR   RES      0
+         LI,R1    BA(MSGFNM)
+         B        ERRXIT
+*
+FNMNUL   RES      0
+         MTW,1    FNMBLK
+FNMOUT   RES      0
+         MTW,1    FNMSWT
+FNMDOT   RES      0
+         STW,R2   FNMCNT
+*
+FNMXIT   RES      0
+         PLW,R2   WRKSTK
+         PLW,R15  WRKSTK
+         LW,R0    FNMSWT
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 ************************
+*                 *                      *
+*                 * EXPRESSION EVALUATOR *
+*                 *                      *
+*                 ************************
+*
+*
+*
+EXPMSK   DATA     X'F'
+         BOUND    8
+EXPDEC   DATA     '0','9'
+EXPHEX   DATA     'A','F'
+*
+EXPEVL   RES      0
+         PSW,R15  WRKSTK
+         PSW,R2   WRKSTK
+         LI,R2    0
+         STW,R2   EXPSWT
+         BAL,R15  SCNFNB
+         BLZ      EXPNUL
+         CI,R0    KCM
+         BE       EXPNUL
+*
+EXPSCN   RES      0
+         CLM,R0   EXPDEC            IS IT DECIMAL
+         BCR,9    EXPDGT
+         CLM,R0   EXPHEX            IS IT HEX
+         BCS,9    EXPERR
+         AI,R0    9
+*
+EXPDGT   RES      0
+         AND,R0   EXPMSK
+         SAS,R2   4
+         AW,R2    R0
+         BAL,R15  SCNCHR
+         BLZ      EXPOUT
+         CI,R0    KBL
+         BE       EXPOUT
+         CI,R0    KCM
+         BNE      EXPSCN
+*
+EXPOUT   RES      0
+         MTW,1    EXPSWT
+         LW,R1    R2
+         PLW,R2   WRKSTK
+         PLW,R15  WRKSTK
+         LW,R0    EXPSWT
+         B        *R15
+*
+EXPNUL   RES      0
+         MTW,1    EXPBLK
+         B        EXPOUT
+*
+EXPERR   RES      0
+         LI,R1    BA(MSGEXP)
+         B        ERRXIT
+*
+         PAGE
+*
+*
+*
+*                 *****************
+*                 *               *
+*                 * SHOW AND TELL *
+*                 *               *
+*                 *****************
+*
+*
+*
+SHWOPA   OPEN_    KYWUTL,0,1,SHWOPD,3
+SHWMBS   GEN,8,24 10,BA(SHWBFR)+1
+SHWPBN   TEXT     'PUBLIC     '
+SHWCMN   TEXT     'USERCOMPF  '
+SHWMBD   GEN,8,24 10,BA(SHWOPD)+6
+         BOUND    8
+SHWMSG   DATA     BA(SHWOPD)+6
+         GEN,8,24 10,BA(SHWBFR)+1
+SHWPUB   DATA     BA(SHWOPD)+6
+         GEN,8,24 10,BA(SHWPBN)
+SHWCMP   DATA     BA(SHWOPD)+6
+         GEN,8,24 10,BA(SHWCMN)
+*
+INSPECT  RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+*
+SHWINL   RES      0
+         MTW,0    SCNEOL
+         BNEZ     SHWXIT
+         BAL,R15  EXPEVL
+         LW,R3    R1
+         LW,R0    R1
+         LI,R1    5
+         BAL,R15  WRTHEX
+         LI,R0    KEQ
+         LI,R1    0
+         BAL,R15  WRTCHR
+         BAL,R15  USRGET
+         LW,R0    R2
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         B        SHWINL
+*
+SHWXIT   RES      0
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+REPLACE  RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         MTW,0    SCNEOL
+         BNEZ     SHWXIT
+         BAL,R15  EXPEVL
+         LW,R3    R1
+*
+SHWRPL   RES      0
+         MTW,0    SCNEOL
+         BNEZ     SHWXIT
+         BAL,R15  EXPEVL
+         LW,R2    R1
+         BAL,R15  USRPUT
+         LW,R0    R3
+         LI,R1    5
+         BAL,R15  WRTHEX
+         LI,R0    KLA
+         BAL,R15  WRTCHR
+         LW,R0    R2
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         MTW,1    R3
+         B        SHWRPL
+*
+LIST     RES      0
+         PSW,R15  WRKSTK
+         LCI      4
+         PSM,R2   WRKSTK
+         MTW,0    SCNEOL
+         BNEZ     SHWLXT
+         BAL,R15  EXPEVL
+         LW,R3    R1
+         MTW,0    SCNEOL
+         BNEZ     $+2
+         BAL,R15  EXPEVL
+         LW,R4    R1
+*
+SHWLST   RES      0
+         LI,R5    -8
+         LW,R0    R3
+         LI,R1    5
+         BAL,R15  WRTHEX
+*
+SHWLSL   RES      0
+         BAL,R15  USRGET
+         LW,R0    R2
+         LI,R1    8
+         BAL,R15  WRTHEX
+         CW,R3    R4
+         BE       SHWOUT
+         MTW,1    R3
+         BIR,R5   SHWLSL
+         BAL,R15  WRTOUT
+         B        SHWLST
+*
+SHWOUT   RES      0
+         BAL,R15  WRTOUT
+*
+SHWLXT   RES      0
+         LCI      4
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         LI,R13   KYWUTL
+         BAL,R14  G:CLOSE           CLOSE OUT KEYWORD FOR DESTROY
+         B        *R15
+*
+SHWOUF   RES      0
+         MTW,0    SHWSWT
+         BLEZ     SHWLXT
+         B        SHWOUT
+*
+VALUE    RES      0
+         PSW,R15  WRKSTK
+*
+SHWVLP   RES      0
+         MTW,0    SCNEOL
+         BNEZ     SHWVXT
+         BAL,R15  EXPEVL
+         LW,R0    R1
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         B        SHWVLP
+*
+SHWVXT   RES      0
+         PLW,R15  WRKSTK
+         B        *R15
+*
+PSD      RES      0
+         PSW,R15  WRKSTK
+         MTW,0    SCNEOL
+         BNEZ     SHWPSD
+         BAL,R15  EXPEVL
+         STW,R1   USRPSW
+*
+SHWPSD   RES      0
+         LI,R1    BA(MSGPSD)
+         BAL,R15  WRTSEG
+         LW,R0    USRPSW
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         PLW,R15  WRKSTK
+         B        *R15
+*
+FILES    RES      0
+         PSW,R15  WRKSTK
+         LI,R15   X'80'
+*
+SHWDRC   RES      0
+         STW,R15  SHWSWT
+         LCI      4
+         PSM,R2   WRKSTK
+         LI,R0    10
+         STB,R0   SHWBFR
+         LI,R0    KYWRTD
+         MTW,0    SCNEOL
+         BNEZ     SHWFIL
+         LW,R0    SHWSWT
+         LI,R1    KYWUTL
+         LI,R2    0
+         BAL,R15  OPNFIL
+         LI,R0    KYWUTL
+*
+SHWFIL   RES      0
+         STW,R0   SHWKYW
+         LI,R13    HDRPAGE
+         LI,R1    DRCHDR
+         SAS,R1   -9
+         STH,R1   R13
+         STB,R0   R13
+         BAL,R14  G:COUPLE
+         BNEZ     SHWFLR
+*
+SHWSRC   RES      0
+         LW,R3    SHWSWT
+         STW,R3   SHWCNT
+         LI,R3    8
+*
+SHWFLP   RES      0
+         LI,R2    -7
+*
+SHWFLD   RES      0
+         AI,R3    1
+         LB,R3    DRCHDR,R3
+         BEZ      SHWOUF
+         MI,R3    20
+         LW,R4    R3
+         MTW,0    SHWSWT
+         BLEZ     SHWDEL
+         LW,R5    SHWMBS
+         MBS,R4   BA(DRCHDR)+6
+         LI,R1    BA(SHWBFR)
+         BAL,R15  WRTSEG
+         BIR,R2   SHWFLD
+         BAL,R15  WRTOUT
+         B        SHWFLP
+*
+SHWDEL   RES      0
+         LW,R5    SHWMBD
+         MBS,R4   BA(DRCHDR)+6
+         LD,R6    SHWPUB
+         CBS,R6   0
+         BE       SHWFLD
+         LD,R6    SHWCMP
+         CBS,R6   0
+         BE       SHWFLD
+         MTW,1    SHWCNT
+         BLEZ     SHWFLD
+         LW,R0    SHWOPA+1
+         STW,R0   SHWOPD
+         LW,R13   SHWOPA
+         LW,R0    SHWKYW
+         SLS,R0   4
+         STB,R0   R13
+         BAL,R14  G:OPEN
+         BEZ      SHWSRC
+         MTW,-1   SHWSWT
+         LI,R1    BA(MSGSHW)
+         BAL,R15  WRTSEG
+         LD,R6    SHWMSG
+         MBS,R6   0
+         LI,R0    10
+         STB,R0   SHWBFR
+         LI,R1    BA(SHWBFR)
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+         B        SHWFLD
+*
+SHWFLR   RES      0
+         LI,R1    BA(MSGFLR)
+         B        ERRXIT
+DESTROY  RES      0
+         PSW,R15  WRKSTK
+         LI,R15   0
+         B        SHWDRC
+*
+         PAGE
+*
+*
+*
+*                 ******************************
+*                 *                            *
+*                 * FILE MANIPULATION ROUTINES *
+*                 *                            *
+*                 ******************************
+*
+*
+*
+         DATA,2   0,2
+         DATA,2   0,4
+MNPTBL   RES      0
+MNPARG   GEN,8,24 KYWPRG,MNPCAL+1
+         BOUND    8
+MNPMBS   DATA     BA(FNMBFR)
+         GEN,8,24 10,BA(MNPCAL)+10
+MNPMS1   DATA     X'C000C000'
+MNPMS2   DATA     X'7'
+*
+FETCH    RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R0    0
+         STW,R0   MNPPRC
+         LI,R0    KYWPRG
+         BAL,R15  UTLGEN
+         LI,R0    0
+         LI,R1    -KYWPRG
+         LI,R2    KYWPRG
+         BAL,R15  OPNFIL
+         LI,R2    KYWRTD
+         B        MNPNAM
+*
+PUNCH    RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R0    -1
+         STW,R0   MNPPRC
+         LI,R0    KYWUTL
+         BAL,R15  UTLPUN
+         B        MNPFIL
+*
+PUNCHL   RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R0    -1
+         STW,R0   MNPPRC
+         LI,R0    KYWUTL
+         BAL,R15  UTLPNL
+         B        MNPFIL
+*
+PRINT    RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R0    -2
+         STW,R0   MNPPRC
+         LI,R0    KYWUTL
+         BAL,R15  UTLPRT
+         B        MNPFIL
+*
+ENTER    RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R0    0
+         STW,R0   MNPPRC
+         LI,R0    0
+         LI,R1    KYWUTL
+         LI,R2    0
+         BAL,R15  OPNFIL
+         B        MNPFIL
+*
+DELETE   RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+MNPDEL   RES      0
+         LI,R0    X'C0'
+         LI,R1    -KYWUTL
+         LI,R2    0
+         BAL,R15  OPNFIL
+         MTW,0    SCNEOL
+         BEZ      MNPDEL
+         LI,R13   KYWUTL
+         BAL,R14  G:CLOSE           CLOSE OUT DELETE KEYWORD
+         B        MNPXIT
+*
+GIVE     RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R0    0
+         STW,R0   MNPPRC
+         LI,R0    KYWUTL
+         BAL,R15  UTLGEN
+*
+MNPFIL   RES      0
+         LI,R0    0
+         LI,R1    KYWPRG
+         LI,R2    0
+         BAL,R15  OPNFIL
+         LI,R2    KYWUTL
+*
+MNPNAM   RES      0
+         MTW,0    SCNEOL
+         BNEZ     $+2
+         BAL,R15  FNMEVL
+         SAS,R2   28
+         AW,R2    MNPARG
+         STW,R2   MNPCAL
+         LD,R2    MNPMBS
+         MBS,R2   0
+         LW,R13   G:JOBNUM
+         STH,R13  MNPCAL+2
+         LW,R13   G:ASLIFE
+         AND,R13  MNPMS1
+         LW,R14   G:SECURE
+         AND,R14  MNPMS2
+         SLS,R14  24
+         OR,R13   R14
+         STW,R13  MNPCAL+1
+         LW,R13   MNPCAL
+         BAL,R14  G:ENTER
+         BNEZ     MNPERR
+         LW,R1    MNPPRC
+         BEZ      MNPXIT
+         LW,R13   MNPTBL,R1
+         BAL,R14  G:WAKEUP
+*
+MNPXIT   RES      0
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+MNPERR   RES      0
+         LI,R1    BA(MSGMNP)
+         B        ERRXIT
+*
+         PAGE
+*
+*
+*
+*
+*
+ZAP      RES      0
+         LI,R13   0
+         BAL,R14  G:DELETE          CLEAR THE SCREEN
+         B        *R15              RETURN
+*
+         PAGE
+*
+*
+*
+*                 ****************
+*                 *              *
+*                 * TRAP HANDLER *
+*                 *              *
+*                 ****************
+*
+*
+*
+         BOUND    8
+TRPMBF   DATA     BA(G:MSGCNT)
+         GEN,8,24 132,BA(USRMCT)
+TRPADR   DATA     G:INTPSW          LOCATION OF PSW AFTER INTERRUPT
+         DATA     G:ABRPSW          LOCATION OF PSW AFTER ABORT
+*
+* ENTRY POINT FOR ABORTS:
+*
+TRPABR   RES      0
+         MTW,1    TRPSWT            SET ABORT/INTERRUPT SWITCH TO 1
+*
+* ENTRY POINT FOR INTERRUPT:
+*
+TRPINT   RES      0
+         MTW,0    USRSWT            CHECK USER SWITCH
+         BEZ      TRPDBG
+*
+* TRAP CONDITION OCCURRED IN USER:
+*
+         LCI      0
+         STM,R0   USRREG            SAVE USER'S REGISTERS
+         LW,R1    TRPSWT
+         LW,R0    TRPADR,R1
+         LW,R0    *R0               GET PSW AT TIME OF TRAP
+         STW,R0   USRPSW
+         LD,R2    TRPMBF
+         MBS,R2   0                 SAVE CONTENTS OF MESSAGE BUFFER
+         BAL,R15  TRPRST
+         MTW,0     TRPSWT
+         BEZ      TRPUIN
+         BAL,R15  BRKCHK            WAS ABORT A BREAK POINT
+         BLZ      TRPUAB
+         LW,R8    R0
+         LI,R1    BA(MSGBRK)
+         BAL,R15  WRTSEG            'BREAK N XXXXXXXX XXXXXXXX'
+         LW,R0    R8
+         LI,R1    1
+         BAL,R15  WRTHEX
+         B        TRPLOC
+*
+TRPUIN   RES      0
+         BAL,R15  BRKCHK
+         LI,R1    BA(MSGINT)
+         BAL,R15  WRTSEG            'INTERRUPT XXXXXXXX XXXXXXXX'
+*
+TRPLOC   RES      0
+         LW,R0    USRPSW
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         B        IDLPRG
+*
+TRPUAB   RES      0
+         LI,R1    BA(MSGABR)
+         BAL,R15  WRTSEG            'ABORT NN XXXXXXXX XXXXXXXX'
+*
+TRPABN   RES      0
+         LW,R0    G:ABRNUM
+         LI,R1    2
+         BAL,R15  WRTHEX
+         B        TRPLOC
+*
+* TRAP CONDITION OCCURRED IN GCLP:
+*
+TRPDBG   RES      0
+         BAL,R15  TRPRST
+         MTW,0    TRPSWT            CHECK FOR ERROR IN GCLP
+         BEZ      TRPDIN
+         LI,R1    BA(MSGERR)
+         BAL,R15  WRTSEG            'ERROR NN XXXXXXXX XXXXXXXX'
+         B        TRPABN
+*
+TRPDIN   RES      0
+         LI,R1    BA(MSGINT)
+         BAL,R15  WRTSEG            'INTERRUPT'
+         BAL,R15  WRTOUT
+         B        IDLPRG
+*
+TRPRST   RES      0
+         LD,R2    IDLSTK
+         STD,R2   WRKSTK
+         LI,R13   TRPABR
+         BAL,R14  G:SETABR
+         LI,R13   TRPINT
+         BAL,R14  G:SETINT
+         LI,R13   0
+         STW,R13  USRSWT
+         LI,R13   BA(WRTBFR)
+         STW,R13  WRTPTR
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 *******************
+*                 *                 *
+*                 * OUTPUT ROUTINES *
+*                 *                 *
+*                 *******************
+*
+*
+*
+         SCS,0    0
+         SCS,0    4
+         SCS,0    8
+         SCS,0    12
+         SCS,0    16
+         SCS,0    20
+         SCS,0    24
+         SCS,0    28
+WRTSHF   RES      0
+*
+BAWRTBFR DATA     BA(WRTBFR)
+WRTMSK   DATA     X'7FFFF'
+WRTALF   TEXT     '0123456789ABCDEF'
+*
+WRTRST   RES      0
+         LI,R0    BA(WRTBFR)
+         STW,R0   WRTPTR
+         B        *R15
+*
+WRTENT   RES      0
+         LCI      2
+         PSM,R2   WRKSTK            SAVE REGISTERS
+         LI,R3    -1
+         STW,R3   WRTSWT            SET BLANK SWITCH
+         LW,R1    R1                IS (1) < 0
+         BGEZ     $+3
+         MTW,1    WRTSWT
+         LCW,R1   R1
+         AND,R1   WRTMSK
+         LW,R3    WRTPTR            POINTER TO OUTPUT LINE
+         B        *R14
+*
+WRTBLK   RES      0
+         MTW,0    WRTSWT
+         BEZ      WRTXIT
+         LI,R2    KBL
+         STB,R2   0,R3              PLACE BLANK AFTER SEGMENT
+         MTW,1    R3                INCREMENT POINTER TO OUTPUT
+*
+WRTXIT   RES      0
+         STW,R3   WRTPTR
+         LCI      2
+         PLM,R2   WRKSTK
+         B        *R15
+*
+WRTSEG   RES      0
+         BAL,R14  WRTENT
+         LB,R2    0,R1              NUMBER OF BYTES IN SEGMENT
+         STB,R2   R3                STORE COUNT
+         MTW,1    R1                INCREMENT TO BEG. OF STRING
+         LW,R2    R1                POINTER TO SOURCE
+         MBS,R2   0                 MOVE INTO WRTBFR
+         B        WRTBLK
+*
+WRTCHR   RES      0
+         BAL,R14  WRTENT
+         STB,R0   0,R3              STORE CHARACTER IN OUTPUT
+         MTW,1    R3                INCREMENT POINTER TO OUTPUT
+         B        WRTBLK
+*
+WRTOUT   RES      0
+         BAL,R14  WRTENT
+         LI,R0    KCR
+         STB,R0   0,R3              TACK ON CARRIAGE RETURN
+         MTW,1    R3
+         SW,R3    BAWRTBFR
+         LI,R13   BA(WRTBFR)
+         STB,R3   R13
+         BAL,R14  G:PRINT           PRINT OUTPUT BUFFER
+         LI,R3    BA(WRTBFR)
+         B        WRTXIT
+*
+WRTDEC   RES      0
+*
+*                                   R0 CONTAINS NUMBER TO BE CONVERTED
+*                                   R1 CONTAINS NUMBER OF DIGITS DESIRED
+*
+WRTHEX   RES      0
+         BAL,R14  WRTENT
+         LCW,R2   R1
+         EXU      WRTSHF,R2
+*
+WRTCNV   RES      0
+         LI,R1    0
+         SCD,R0   4
+         LB,R1    WRTALF,R1
+         STB,R1   0,R3
+         MTW,1    R3                STORE CHARACTER IN OUTPUT
+         BIR,R2   WRTCNV
+         B        WRTBLK
+*
+         PAGE
+*
+*
+*
+*                 ***********************
+*                 *                     *
+*                 * BREAK POINT HANDLER *
+*                 *                     *
+*                 ***********************
+*
+*
+*
+BRKMSK   DATA     X'1FFFF'
+         BOUND    8
+BRKLIM   DATA     0,15
+*
+BREAK    RES      0
+         PSW,R15  WRKSTK
+         PSW,R2   WRKSTK
+         MTW,0    SCNEOL            CHECK FOR END OF LINE
+         BLZ      BRKDSP
+         BAL,R15  EXPEVL
+         CLM,R1   BRKLIM
+         BCS,9    BRKERR
+         LW,R2    R1
+         MTW,0    SCNEOL
+         BLZ      BRKDSS
+         BAL,R15  EXPEVL            GET ADDRESS
+         AND,R1   BRKMSK
+         STW,R1   BRKLOC,R2
+*
+BRKDSS   RES      0
+         LI,R1    BA(MSGBRK)
+         BAL,R15  WRTSEG
+         LW,R0    R2
+         LI,R1    1
+         BAL,R15  WRTHEX
+         MTW,0    BRKLOC,R2
+         BLZ      BRKDSZ
+         LI,R0    KEQ
+         LI,R1    1
+         BAL,R15  WRTCHR
+         LW,R0    BRKLOC,R2
+         LI,R1    5
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+*
+BRKXIT   RES      0
+         PLW,R2   WRKSTK
+BRKXTX   RES      0
+         PLW,R15  WRKSTK
+         B        *R15
+*
+BRKDSZ   RES      0
+         LI,R1    BA(MSGBRZ)
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+         B        BRKXIT
+*
+BRKDSP   RES      0
+         LI,R2    -16
+*
+BRKDSL   RES      0
+         LW,R0    BRKLOC+16,R2
+         BLZ      BRKDSX
+         LI,R1    BA(MSGBRK)
+         BAL,R15  WRTSEG
+         LI,R1    1
+         LW,R0    R2
+         BAL,R15  WRTHEX
+         LI,R0    KEQ
+         LI,R1    1
+         BAL,R15  WRTCHR
+         LW,R0    BRKLOC+16,R2
+         LI,R1    5
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+*
+BRKDSX   RES      0
+         BIR,R2   BRKDSL
+         B        BRKXIT
+*
+BRKERR   RES      0
+         LI,R1    BA(MSGIBP)
+         B        ERRXIT
+*
+CLEAR    RES      0
+         PSW,R15  WRKSTK
+         MTW,0    SCNEOL
+         BLZ      BRKCLR
+*
+BRKCLE   RES      0
+         BAL,R15  EXPEVL
+         CLM,R1   BRKLIM
+         BCS,9    BRKERR
+         LI,R0    -1
+         STW,R0   BRKLOC,R1
+         MTW,0    SCNEOL
+         BGEZ     BRKCLE
+         B        BRKXTX
+*
+BRKCLX   RES      0
+         PSW,R15  WRKSTK            SAVE RETURN ADDRESS
+BRKCLR   RES      0
+         LI,R0    -1
+         LI,R1    -16
+*
+BRKCLL   RES      0
+         STW,R0   BRKLOC+16,R1
+         BIR,R1   BRKCLL
+         B        BRKXTX
+*
+BRKCHK   RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R1    -1
+         STW,R1   BRKNUM
+         LI,R1    15
+*
+BRKCHL   RES      0
+         LW,R2    BRKVAL,R1
+         LW,R3    BRKLOC,R1
+         BLZ      $+2
+         BAL,R15  USRPUT
+         LW,R2    R3
+         LI,R3    X'1FFFF'
+         CS,R2    USRPSW
+         BNE      $+2
+         STW,R1   BRKNUM            SAVE BREAK NUMBER
+         AI,R1    -1
+         BGEZ     BRKCHL
+*
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         LW,R0    BRKNUM
+         B        *R15
+*
+BRKSET   RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R1    -16
+*
+BRKSTL   RES      0
+         LW,R3    BRKLOC+16,R1
+         BLZ      BRKSTX
+         BAL,R15  USRGET
+         STW,R2   BRKVAL+16,R1
+         LI,R2    0
+         BAL,R15  USRPUT
+*
+BRKSTX   RES      0
+         BIR,R1   BRKSTL
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 ****************************
+*                 *                          *
+*                 * OPEN A GENERAL FILE NAME *
+*                 *                          *
+*                 ****************************
+*
+*
+*
+OPNDBT   DATA     X'00800000'
+         BOUND    8
+OPNMBS   DATA     BA(FNMBFR)
+         GEN,8,24 10,BA(OPNARG)+10
+OPNPUB   DATA     BA(OPNNAM)
+         GEN,8,24 10,BA(OPNARG)+10
+OPNNAM   TEXT     'PUBLIC       '
+OPNPOF   DATA     BA(OPNAMP)
+         GEN,8,24 10,BA(OPNARG)+10
+OPNAMP   TEXT     'POSTOFFICE'
+OPNGEN   DATA     BA(OPNAMG)
+         GEN,8,24 10,BA(OPNARG)+10
+OPNAMG   TEXT     'GENERAL    '
+*
+OPNFIL   RES      0
+         STW,R0   OPNACC
+         STW,R1   OPNDEL
+         LAW,R1   R1
+         STW,R1   OPNKYW
+         STW,R2   OPNDIR
+         LI,R0    OPNARG+1
+         STW,R0   OPNARG
+         LI,R0    -1
+         STW,R0   OPNSWT
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+*
+OPNTRY   RES      0
+         BAL,R15  FNMEVL            GET FILE NAME
+*
+OPNRTR   RES      0
+         LD,R2    OPNMBS
+         MBS,R2   0                 MOVE FILE NAME INTO OPEN ARGUMENT
+         LW,R0    OPNACC            GET ACCESS
+         MTW,0    FNMSWT
+         BNEZ     $+2
+         LI,R0    0                 START DIRECTORIES AT FULL ACCESS
+*
+OPNRTR1  RES      0
+         STB,R0   OPNARG+1
+         LW,R0    OPNKYW
+         LW,R1    OPNSWT
+         BGEZ     OPNOPN
+         LI,R0    X'C'
+         MTW,0    OPNDIR
+         BEZ      $+2
+         LW,R0    OPNDIR            DIRECTORY WAS SPECIFIED
+*
+OPNOPN   RES      0
+         SAS,R0   4
+         AW,R0    OPNKYW
+         STB,R0   OPNARG
+*
+OPNREA   RES      0
+         LW,R13   OPNARG
+         MTW,0    FNMSWT
+         BEZ      OPNCAL
+         MTW,0    OPNDEL
+         BGEZ     OPNCAL
+         AW,R13   OPNDBT
+*
+OPNCAL   RES      0
+         BAL,R14  G:OPEN
+         BEZ      OPNCAL1           OK IF OPENED
+         MTW,0    FNMSWT            SEE IF CONCATENATED NAME
+         BNEZ     OPNERR            IF NOT, THEN ACTUAL ERROR
+         LB,R0    OPNARG+1
+         CI,R0    X'C0'             SEE IF NO ACCESS WAS LAST
+         BE       OPNERR            IF SO, GIVE UP
+         AI,R0    X'40'             OTHERWISE INCREMENT BY ONE
+         B        OPNRTR1           THEN TRY AGAIN
+*
+OPNCAL1  RES      0
+         MTW,1    OPNSWT
+         MTW,0    FNMSWT            WAS FILE NAME CONCATENATED
+         BEZ      OPNTRY
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+OPNERR   RES      0
+         MTW,0    OPNLDR
+         BEZ      OPNCHP
+         LB,R0    OPNARG+1
+         CI,R0    0
+         BNE      OPNCHP
+         LI,R0    X'40'
+         STB,R0   OPNARG+1
+         B        OPNREA
+*
+OPNCHP   RES      0
+         MTW,1    OPNSWT
+         BEZ      OPNTPB
+         LI,R1    BA(MSGOPN)
+         B        ERRXIT
+*
+OPNTPB   RES      0
+         MTW,0    OPNDIR            WAS DIRECTORY SPECIFIED
+         BGZ      OPNERR
+         LD,R2    OPNPUB
+         MBS,R2   0                 MOVE PUBLIC INTO OPEN ARGUMENT
+         LI,R0    X'C0'
+         AW,R0    OPNKYW
+         STB,R0   OPNARG
+         LI,R0    X'80'
+         STB,R0   OPNARG+1
+         LW,R13   OPNARG
+         BAL,R14  G:OPEN
+         BEZ      OPNRTR
+         MTW,0    OPNDIR
+         BEZ      OPNERR
+         LW,R0    OPNKYW
+         SAS,R0   4
+         AW,R0    OPNKYW
+         STB,R0   OPNARG
+         LD,R2    OPNPOF
+         MBS,R2   0
+         LW,R13   OPNARG
+         BAL,R14  G:OPEN
+         BNEZ     OPNERR
+         LD,R2    OPNGEN
+         MBS,R2   0
+         LI,R13   X'C0'
+         STB,R13  OPNARG+1
+         LW,R13   OPNARG
+         BAL,R14  G:OPEN
+         BNEZ     OPNERR
+         B        OPNRTR
+*
+         PAGE
+*
+*
+*
+*                 *************************
+*                 *                       *
+*                 * UTILITY FILE ROUTINES *
+*                 *                       *
+*                 *************************
+*
+*
+*
+UTLPUB   OPEN_    KYWRTD,0,0,$+1,2
+         TEXT     '   PUBLIC    '
+UTLPOF   OPEN_    0,0,0,$+1,2
+         TEXT     '   POSTOFFICE'
+UTLMBX   DATA     UTLGND
+         DATA     UTLPRM
+         DATA     UTLPNM
+         DATA     UTLPLM
+*
+UTLGND   GEN,2,30 3,0
+         TEXT     '   GENERAL   '
+UTLPRM   GEN,2,30 3,0
+         TEXT     '   PRINTER   '
+UTLPNM   GEN,2,30 3,0
+         TEXT     '   PUNCH     '
+UTLPLM   GEN,2,30 3,0
+         TEXT     '   LONGPUNCH '
+*
+UTLGEN   RES      0
+         LI,R1    0
+         B        UTLBGN
+*
+UTLPRT   RES      0
+         LI,R1    1
+         B        UTLBGN
+*
+UTLPUN   RES      0
+         LI,R1    2
+         B        UTLBGN
+*
+UTLPNL   RES      0
+         LI,R1    3
+*
+UTLBGN   RES      0
+         SAS,R0   24
+         LW,R13   UTLPUB
+         AW,R13   R0
+         BAL,R14  G:OPEN
+         BNEZ     UTLERR
+         LW,R13   R0
+         SAS,R13  4
+         AW,R0    R13
+         LW,R13   UTLMBX,R1
+         AW,R13   R0
+         BAL,R14  G:OPEN
+         BEZ      *R15
+*
+UTLERR   RES      0
+         LI,R1    BA(MSGFLR)
+         B        ERRXIT
+*
+         PAGE
+*
+*
+*
+*                 ***********************
+*                 *                     *
+*                 * EXECUTION PROCESSOR *
+*                 *                     *
+*                 ***********************
+*
+*
+*
+XECMVI   GEN,8,24 128,BA(USRMBF)
+*
+PROCEED  RES      0
+         LI,R0    0
+         B        XECBGN
+*
+GO       RES      0
+         LI,R0    1
+*
+XECBGN   RES      0
+         PSW,R15  WRKSTK
+         STW,R0   XECSWT
+         MTW,0    SCNEOL
+         BNEZ     XECPRC
+         BAL,R15  EXPEVL
+         STW,R1   USRPSW
+*
+XECPRC   RES      0
+         MTW,0    XECSWT
+         BNEZ     XECUSR
+         BAL,R15  USRSTP
+*
+XECUSR   RES      0
+         BAL,R15  BRKSET
+         MTW,0    FRTSWT
+         BLZ      XECRUN
+         LW,R13   FRTABR
+         BAL,R14  G:SETABR
+         LW,R13   FRTABR+1
+         BAL,R14  G:SETINT
+         LI,R0    -1
+         STW,R0   FRTSWT
+*
+XECRUN   RES      0
+         LW,R13   XECMVI
+         BAL,R14  G:MOVEIO
+         LW,R13   XECMVI
+         LW,R0    USRMCT
+         STB,R0   R13
+         BAL,R14  G:MOVEIO
+         LI,R0    1
+         STW,R0   USRSWT
+*
+XECLIB   RES      0
+         LCI      0
+         LM,R0    USRREG
+         LCF      USRPSW
+         B        *USRPSW
+*
+STEP     RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LI,R2    1
+         MTW,0    SCNEOL
+         BNEZ     XECSTP
+         BAL,R15  EXPEVL
+         LW,R2    R1
+*
+XECSTP   RES      0
+         BAL,R15  USRSTP
+         BDR,R2   XECSTP
+         LI,R1    BA(MSGPSD)
+         BAL,R15  WRTSEG
+         LW,R0    USRPSW
+         LI,R1    8
+         BAL,R15  WRTHEX
+         LW,R3    USRPSW
+         BAL,R15  USRGET
+         LW,R0    R2
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+         PAGE
+*
+*
+*                 FILE EXECUTION AND LOADING
+*
+*
+*        ROUTINE TO HANDLE THE MASTER COMMANDS:
+*
+*                 EXECUTE
+*                 LOAD
+*
+*        GORDO EXECUTABLE FILES (OLD FLD FORMAT OR NEW XPL FORMAT)
+*        ARE LOADED INTO VIRTUAL SPACE.  IF THE PROCESS NUMBER IS
+*        ONE (THE MASTER PROCESS) A SUBPROCESS IS FIRST FORKED OFF.
+*        FILE PAGES ARE THEN COUPLED INTO VIRTUAL SPACE.  PAGES OF
+*        THE PROCESS SCRATCH FILE ARE USED FOR VIRTUAL PAGES WHICH
+*        ARE TO BE COPIED FROM THE EXECUTABLE FILE OR WHICH CORRES-
+*        POND TO UNINITIALIZED DATA AREAS.
+*
+*
+         LOCAL    L0,L1,L2,L3,L4,L5,L6,L7,L8,L9,L10,L11,L12
+         LOCAL    L13,L14
+         LOCAL    NEWTYPE,OLDTYPE,FORK,TYPES,LOADER,STACK
+*
+         BOUND    8
+STACK    RES      0
+         DATA     XPLSTK+1          INITIAL STACK DOUBLEWORD
+         DATA,2   512,0
+*
+FORK     RES      0
+         DATA     NLZFRK            PSW FOR FORKED SUBPROCESS
+         DATA,2   X'FFFF',100
+         DATA     0
+         DATA,2   200,200
+*
+         DATA     X'A0A0A0A0'       XPL EXECUTABLE FORMAT
+         DATA     X'F0F0F0F0'       FLD EXECUTABLE FORMAT
+TYPES    RES      0
+         B        NEWTYPE
+         B        OLDTYPE
+LOADER   RES      0
+*
+EXECUTE  RES      0
+         LI,R0    0                 CLEAR LOAD-ONLY FLAG
+         B        L0                READY TO BEGIN LOAD PROCESS
+LOAD     RES      0
+         LI,R0    1                 SET LOAD-ONLY FLAG
+         B        L0
+*
+*        (R0) = 0, IF EXECUTION IS TO PROCEED AFTER LOADING
+*               1, IF NO EXECUTION
+*
+L0       RES      0
+         STW,R0   LDRSWT            SAVE LOAD-ONLY SWITCH FOR LATER TEST
+         PSW,R15  WRKSTK            SAVE RETURN ADDRESS
+         LCI      2
+         PSM,R2   WRKSTK            SAVE SCAN POINTER
+         LI,R0    0
+         STW,R0   CMDMNT            RESET MONITOR SWITCH
+         LW,R0    G:PRCNUM          LOAD PROCESS NUMBER
+         CI,R0    1                 CHECK FOR MASTER PROCESS
+         BNE      L3                BRANCH IF ALREADY IN SUBPROCESS
+         BAL,R15  SCNRST            BACKUP SCAN TO COMMAND
+         LW,R13   SCNPTR            LOAD SCAN POINTER
+         MTW,+1   R13               INCREMENT TO NEXT CHARACTER
+         LCW,R0   R13               COMPLEMENT FOR COMPUTATION
+         AI,R0    BA(SCNBFR)        ADD BUFFER ADDRESS FOR INITIAL COUNT
+         AW,R0    SCNCNT            FINALLY, GET REMAINING COUNT
+         STB,R0   R13               THEN BUILD POINTER TO REMAINING LINE
+         BAL,R14  G:MOVEIO          RELOAD IN MESSAGE BUFFER
+         LI,R13   FORK              ARGUMENT FOR FORKING SUBPROCESS
+         BAL,R14  G:FORK            FORK THE SUBPROCESS
+         BLZ      L2                BRANCH ON FORK ERROR
+         LW,R2    R13               PROCESS NUMBER FOR FORK
+         LI,R1    BA(MSGPRC)
+         BAL,R15  WRTSEG            'PROCESS NUMBER'
+         LW,R0    R2                PROCESS NUMBER
+         LI,R1    2                 LENGTH OF FIELD
+         BAL,R15  WRTHEX            'XX'
+         LI,R1    BA(MSGFRK)
+         BAL,R15  WRTSEG            'FORKED'
+         BAL,R15  WRTOUT            END OF MESSAGE
+         LW,R13   R2                SUBPROCESS NUMBER
+         BAL,R14  G:ASSINP          ASSIGN CONSOLE TO PROCESS
+*
+L1       RES      0
+         LI,R0    1
+         STW,R0   CMDMNT            SET SWITCH TO SCAN FOR COMMAND
+         LCI      2
+         PLM,R2   WRKSTK            RESTORE REGISTERS
+         PLW,R15  WRKSTK            RESTORE RETURN ADDRESS
+         B        *R15              RETURN
+*
+L2       RES      0
+         LI,R1    BA(MSGFRR)        'ERROR FORKING PROCESS'
+         B        ERRXIT
+*
+*        SUBPROCESS HAS BEEN FORKED, READY TO OPEN FILE
+*
+L3       RES      0
+         BAL,R15  SCNSAV            SAVE SCAN STATUS
+         LI,R1    KYWPRG            KEYWORD FOR OPENING PROGRAM FILE
+         LI,R2    0                 ASK FOR FULL ACCESS
+         MTW,+1   OPNLDR            SET LOADER SWITCH (SO EXECUTE OK)
+         BAL,R15  OPNFIL            OPEN FILE SPECIFIED IN COMMAND LINE
+         LI,R5    KYWPRG            KEYWORD (TO DISTINGUISH FROM LIBRARY)
+*
+LIBRARY  RES      0
+         LI,R13   1                 FILE PAGE
+         LI,R0    XFLHDR            ADDRESS OF HEADER
+         SLS,R0   -9                SHIFT TO PAGE NUMBER
+         STH,R0   R13               SET VIRTUAL PAGE
+         STB,R5   R13               SET KEYWORD
+         BAL,R14  G:COUPLE          COUPLE FIRST PAGE OF PROGRAM FILE
+         BNEZ     L7                BRANCH IF ERROR
+         LW,R0    XFLHDR            LOOK AT FIRST WORD OF FILE
+         LI,R1    TYPES-LOADER      NUMBER OF FILE FORMATS
+*
+L4       RES      0
+         CW,R0    TYPES,R1          SCAN FOR KNOWN FILE TYPE
+         BE       LOADER,R1         IF FOUND, LOAD APPROPRIATELY
+         BIR,R1   L4                KEEP SCANNING ALL KNOWN TYPES
+*
+L5       RES      0
+         CI,R5    KYWPRG            ERROR--SEE IF LOADING LIBRARY
+         BNE      L6                SKIP IF YES
+         LI,R1    BA(MSGLD1)        'FILE IS NOT EXECUTABLE'
+         B        ERRXIT
+*
+L6       RES      0
+         LI,R1    BA(MSGLD3)        'LIBRARY IS NOT EXECUTABLE'
+         B        ERRXIT
+*
+L7       RES      0
+         CI,R5    KYWPRG            ERROR--SEE IF LOADING LIBRARY
+         BNE      L8                SKIP IF YES
+         LI,R1    BA(MSGLD2)        'COUPLE ERROR LOADING FILE'
+         B        ERRXIT
+*
+L8       RES      0
+         LI,R1    BA(MSGLD4)        'COUPLE ERROR LOADING LIBRARY'
+         B        ERRXIT
+*
+*        FILE HAS BEEN LOADED, READY FOR EXECUTION
+*
+L9       RES      0
+         LI,R3    X'1FFFF'          MASK FOR INSTRUCTION ADDRESS
+         STS,R2   USRPSW            SET PSW TO EXECUTION START ADDRESS
+         CI,R5    KYWPRG            SEE IF LOADING LIBRARY
+         BNE      XECLIB            ALL SET IF WE ARE
+         LI,R1    NFCB-1            NUMBER OF FILE CONTROL BLOCKS
+         LI,R0    0                 CLEAR ALL TYPE FLAGS
+*
+L9A      RES      0
+         STW,R0   FCBTYPE,R1        CLEAR LOGICAL UNIT ASSIGNMENT
+         BDR,R1   L9A               GET ALL OF THEM
+         LI,R0    FCB:USED
+         STW,R0   FCBTYPE+1         ASSIGN KEYWORD 1 TO PROGRAM
+         LI,R13   XPLSTK            ADDRESS OF STACK DOUBLEWORD
+         STW,R13  USRREG            PLACE INTO USER REGISTER 0
+         SLS,R13  -9                CONVERT TO PAGE NUMBER
+         STH,R13  R13               USE AS VIRTUAL PAGE NUMBER
+         MTW,+1   R13               INCREMENT BY ONE FOR SCRATCH PAGE
+         LI,R0    KYWSCR            KEYWORD FOR SCRATCH FILE
+         STB,R0   R13               SET KEYWORD
+         BAL,R14  G:COUPLE          COUPLE IN STACK PAGE
+         BNEZ     L7                BRANCH IF COUPLE ERROR
+         LD,R0    STACK             INITIAL STACK DOUBLEWORD
+         STD,R0   XPLSTK            INITIALIZE THE RUN-TIME STACK
+         LI,R0    MONITOR           ADDRESS OF SUBMONITOR
+         PSW,R0   XPLSTK            PUSH LINK ADDRESS INTO STACK
+         BAL,R15  SCNRST            RESET SCAN POINTER TO FILE NAME
+         LW,R12   SCNPTR            LOAD SCAN POINTER
+         MTW,+1   R12               INCREMENT TO NEXT CHARACTER
+         LCW,R0   R12               COMPLEMENT FOR COMPUTATION
+         AI,R0    BA(SCNBFR)        ADD BUFFER ADDRESS FOR INITIAL COUNT
+         AW,R0    SCNCNT            FINALLY, GET REMAINING COUNT
+         STW,R0   USRMCT            SAVE AS USER'S LINE COUNT
+         LI,R13   BA(USRMBF)        ADDRESS OF USER'S MESSAGE BUFFER
+         STB,R0   R13               SET BYTE COUNT FOR MOVE
+         MBS,R12  0                 PLACE REMAINING LINE IN USER'S BUFFER
+         MTW,0    LDRSWT            SEE IF LOAD-ONLY SWITCH SET
+         BNEZ     L1                ALL DONE IF IT IS
+*
+         LI,R1    BA(MSGBGN)
+         BAL,R15  WRTSEG            'BEGIN EXECUTION'
+         BAL,R15  WRTOUT            END OF MESSAGE
+         LI,R0    -1
+         STW,R0   FRTSWT            CLEAR FORTRAN INITIALIZATION SWITCH
+         MTB,R0   OPNARG+1          THEN CHECK ACCESS OF LAST OPEN
+         BEZ      XECUSR            IF FULL ACCESS READY TO GO
+         BAL,R15  BRKCLX            OTHERWISE CLEAR ALL BREAKPOINTS
+         B        XECUSR            THEN BEGIN EXECUTIION
+*
+*        SUBROUTINE TO LOAD FLD FILES
+*
+OLDTYPE  RES      0
+         LW,R0    XFLFFP            FIRST FILE PAGE
+         LW,R1    XFLFVP            FIRST VIRTUAL PAGE
+         STH,R1   R0                BUILD COUPLE ARGUMENT
+         STB,R5   R0                PLACE KEYWORD INTO ARGUMENT
+         LCW,R1   XFLNVP            NUMBER OF VIRTUAL PAGES
+         LW,R2    XFLXSL            EXECUTION START ADDRESS
+*
+L10      RES      0
+         LW,R13   R0                COUPLE ARGUMENT FOR NEXT PAGE
+         BAL,R14  G:COUPLE          COUPLE FILE PAGE INTO VIRTUAL SPACE
+         BNEZ     L5                BRANCH IF COUPLE ERROR
+         AI,R0    X'10001'          UPDATE COUPLE ARGUMENT
+         BIR,R1   L10               PROCESS ENTIRE FILE
+         B        L9                FINISH UP LOADING
+*
+*        SUBROUTINE TO LOAD XPL FILES
+*
+NEWTYPE  RES      0
+         LI,R0    KYWSCR            KEYWORD FOR SCRATCH FILE
+         LI,R1    255               NUMBER OF VIRTUAL PAGES
+*
+*        FMT ENTRIES PROCESSED:  (ACTION,ACCESS,PAGE)
+*
+*        ACTION = 0, NOTHING
+*                 1, COUPLE PROGRAM PAGE
+*                 2, COUPLE SCRATCH PAGE
+*                 3, COUPLE SCRATCH AND COPY
+*
+L11      RES      0
+         LW,R13   XFLHDR+256,R1     FILE MEMORY TABLE ENTRY
+         LB,R3    R13               FIRST BYTE IS ACTION
+         BEZ      L14               BRANCH IF NO ACTION
+         CI,R3    1                 CHECK FOR SIMPLE COUPLE
+         BNE      L12               BRANCH IF ANYTHING ELSE
+         AI,R13   1                 INCREMENT XPL RECORD NUMBER
+         STH,R1   R13               SET UP VIRTUAL PAGE NUMBER
+         STB,R5   R13               SET KEYWORD
+         BAL,R14  G:COUPLE
+         BNEZ     L7                BRANCH IF COUPLE ERROR
+         B        L14               DONE WITH THIS ENTRY
+*
+L12      RES      0
+         CI,R3    3                 CHECK FOR COPY
+         BG       L5                ERROR IF ILLEGAL ACTION
+         LW,R13   R1                USE VIRTUAL PAGE NUMBER
+         AI,R13   1                 INCREMENT FOR SCRATCH PAGE NUMBER
+         STH,R1   R13               SET VIRTUAL PAGE
+         STB,R0   R13               KEYWORD FOR SCRATCH FILE
+         BAL,R14  G:COUPLE          COUPLE IN A SCRATCH PAGE
+         BNEZ     L7                BRANCH IF COUPLE ERROR
+         CI,R3    3                 SEE IF COPY WAS SPECIFIED
+         BNE      L14               IF NOT, DONE WITH THIS ENTRY
+         LW,R13   XFLHDR+256,R1     RELOAD ENTRY
+         AI,R13   1                 INCREMENT XPL RECORD NUMBER
+         LI,R3    XPLSTK            ADDRESS OF COPY PAGE
+         SLS,R3   -9                SHIFT TO PAGE NUMBER
+         STH,R3   R13               SET VIRTUAL PAGE
+         STB,R5   R13               SET PROGRAM KEYWORD
+         BAL,R14  G:COUPLE          COUPLE IN PROGRAM PAGE FOR COPY
+         BNEZ     L7                BRANCH IF COUPLE ERROR
+         LW,R3    1                 VIRTUAL PAGE NUMBER
+         AI,R3    1                 INCREMENT TO TOP-OF-PAGE
+         SLS,R3   9                 SHIFT TO WORD ADDRESS
+         LI,R2    -256              NUMBER OF DOUBLWORDS IN A PAGE
+*
+L13      RES      0
+         LD,R14   XPLSTK+512,R2     DOUBLEWORD FROM PROGRAM PAGE
+         STD,R14  *R3,R2            COPY INTO SCRATCH PAGE
+         BIR,R2   L13               PROCESS ENTIRE PAGE
+*
+L14      RES      0
+         AI,R1    -1                GET NEXT VIRTUAL PAGE
+         BGEZ     L11               GO BACK AND DO REST
+         LW,R2    XFLHDR+2          GET EXECUTION START ADDRESS
+         B        L9                FINISH LOADING
+*
+         PAGE
+*
+*
+*                 XPL SUB-MONITOR
+*
+*
+*        TABLE OF VALID SUBMONITOR SERVICES.  THE SERVICE CALL NUMBER
+*        FOR THE CAL IS ON THE TOP OF THE STACK.  ONLY VALID SERVICE
+*        REQUESTS ARE PROCESSED.  ALL OTHERS CAUSE AN ABORT.
+*
+MONTBL   B        MONLIB              .  LOAD LIBRARY
+         B        MONRTX              .  READ TEXT
+         B        MONWTX              .  WRITE TEXT
+         B        MONDTM              .  DATE AND TIME
+         B        MONEXT              .  EXIT
+         B        MONRBN              .  READ BINARY
+         B        MONWBN              .  WRITE BINARY
+         B        MONSTR              .  START TRACE
+         B        MONETR              .  END TRACE
+         B        MONASU              .  ASSIGN UNIT
+         B        MONERX              .  ERROR EXIT
+MONMAX   EQU      $-MONTBL-1        NUMBER OF VALID SERVICE CODES
+*
+XPLBLANK TEXT     '     '           BLANKS FOR BUFFER FILL.
+*
+MONITOR  RES      0
+         LCI      0
+         STM,R0   XPLREG            SAVE ALL USER REGISTERS
+         PLW,R1  *XPLREG            GET SERVICE TYPE CODE
+         CI,R1    0                 SEE IF CODE IS NON-NEGATIVE
+         BGE      MON1              OK IF GREATER THAN ZERO
+*
+MON0     RES      0
+         LI,R1    BA(MSGXP1)
+         B        MONERR            'ILLEGAL XPL SUBMONITOR CALL'
+*
+MON1     RES      0
+         CI,R1    MONMAX            SEE IF CODE IS WITHIN RANGE
+         BG       MON0              ERROR IF TOO LARGE
+         B        MONTBL,R1         EXECUTE MONTOR CALL
+*
+MONXIT   RES      0                 ALL DONE WITH CALL
+         LCI      0
+         LM,R0    XPLREG            RESTORE ALL USER REGISTERS
+         B        *R15              RETURN TO XPL PROGRAM
+*
+MONERR   RES      0
+         STW,R1   XPLMSG            SAVE MESSAGE POINTER
+         LCI      0
+         LM,R0    XPLREG            LOAD USER'S REGISTERS
+         LCI      0
+         STM,R0   USRREG            SAVE FOR DEBUGGING
+         LW,R1    XPLMSG            RELOAD MESSAGE POINTER
+         B        ERRXIT
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  LOAD LIBRARY (0)
+*
+*        INPUT:   (NONE)
+*
+*        OUTPUT:  (NONE)
+*
+*        THIS CALL IS UNIMPLEMENTED.
+*
+MONLIB   RES      0
+         B        MON0              'ILLEGAL XPL SUBMONITOR CALL'
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  READ TEXT (1)
+*
+*        INPUT:   LOGICAL UNIT NUMBER
+*                 FREESPACE POINTER
+*
+*        OUTPUT:  INPUT STRING (DESCRIPTOR)
+*                 UPDATED FREESPACE POINTER
+*
+*        ONE LINE OF (EBCDIC) TEXT IS READ FROM THE SPECIFIED DEVICE.
+*        IF THE DEVICE IS UNASSIGNED, AN ABORT OCCURS.
+*
+*
+*        DURING THIS ROUTINE, THE REGISTERS ARE ALLOCATED AS:
+*
+*                 (R1) = BYTE INDEX INTO TEXT PAGE
+*                 (R2) = INDEX INTO FCB TABLES
+*                 (R3) = NEXT FREE BYTE IN STRING SPACE
+*                 (R4) = WORD ADDRESS OF TEXT PAGE
+*                 (R5) = WORD ADDRESS OF MAP PAGE
+*                 (R6) = UPDATE STRING SPACE POINTER (INITIAL+80)
+*
+MONRTX   RES      0
+         LCI      2
+         PLM,R2  *XPLREG            GET ARGUMENTS
+         LW,R0    R2                LOGICAL UNIT NUMBER
+         BAL,R15  FCBFIND           FIND FCB FOR UNIT
+         B        MONW0             ERROR IF ILLEGAL UNIT
+         LW,R7    R1                SAVE INDEX INTO FCB TABLES
+         LW,R1    R3                BA(FREE SPACE)
+         LI,R0    80
+         STB,R0   R1                LINE COUNT = 80 (ALWAYS)
+         MBS,R0   BA(XPLBLANK)      BLANK OUT THE LINE
+         LW,R0    R3                GET FREE SPACE POINTER
+         LI,R4    80
+         STB,R4   R0                SET COUNT IN DESCRIPTOR
+         LCI      2
+         PSM,R0  *XPLREG            RETURN ARGUMENTS: DESCRIPTOR, FREE
+         LW,R6    R1                SAVE NEW FREE SPACE POINTER
+         CI,R2    FCB:FILE          CHECK FOR TEXT FILE OR CONSOLE
+         BANZ     MONR1             BRANCH IF THE CONSOLE
+         CI,R2    FCB:IN            SEE IF FILE HAS ATTRIBUTE INPUT
+         BAZ      MONW0             ERROR IF IT DOESN'T
+         LW,R2    R7                GET INDEX INTO FCB
+         LW,R1    FCBNEXT,R2        GET LINE POINTER
+         LW,R4    FCBDATA,R2        ADDRESS OF PAGE
+*
+MON5     RES      0
+         LB,R7    *R4,R1            LOAD COUNT FOR LINE
+         CI,R7    X'FE'
+         BNE      MON7              CHECK FOR END OF FILE
+         LCI      2
+         PLM,R1  *XPLREG            RELOAD OLD VALUES
+         LI,R0    0                 NULL DESCRIPTOR
+         STB,R0   R1                OLD VALUE IS FREE SPACE
+         LCI      2
+         PSM,R0  *XPLREG            STORE NEW VALUES
+         B        MONXIT
+*
+MON6     RES      0
+         LI,R1    BA(MSGXP5)        'ERROR IN XPL TEXT READ'
+         B        MONERR
+*
+MON7     RES      0
+         MTW,+1   FCBLINE,R2        INCREMENT CURRENT LINE NUMBER
+         CI,R7    X'FF'
+         BNE      MON8
+         MTW,1    FCBPAGE,R2        INCREMENT PAGE NUMBER
+         LW,R1    FCBPAGE,R2        GET PAGE NUMBER
+         AI,R1    9                 CORRECT FOR INDEXING
+         LW,R5    FCBMAP,R2         BASE ADDRESS FOR MAP PAGE
+         LH,R13   *R5,R1            GET FILE PAGE
+         LW,R0    FCBDATA,R2        ADDRESS OF TEXT BUFFER
+         SLS,R0   -9                SHIFT TO PAGE NUMBER
+         STH,R0   R13               SET VIRTUAL PAGE
+         STB,R2   R13
+         BAL,R14  G:COUPLE          COUPLE TEXT PAGE IN
+         BNEZ     MON6
+         LI,R1    0                 RESET BYTE POINTER
+         B        MON5              NOW TRY AGAIN
+*
+MON8     RES      0
+         AI,R1    1                 INCREMENT TO FIRST BYTE
+         CI,R7    X'00'
+         BE       MON5              IGNORE ZEROS
+         B        MONC              READY FOR FIRST CHARACTER
+*
+MON9     RES      0
+         CI,R7    X'FC'
+         BNE      MONA
+         AI,R1    1                 SKIP VERTICAL CONTROL AND NEXT BYTE
+         B        MONC              CONTINUE
+*
+MONA     RES      0
+         CI,R7    X'FD'
+         BNE      MOND
+         LB,R0    *R4,R1            GET BLANK COUNT
+         AI,R1    1                 INCREMENT TO NEXT CHARACTER
+         AW,R3    R0                UPDATE BUFFER POINTER
+*
+MONC     RES      0
+         LB,R7    *R4,R1            GET NEXT BYTE
+         AI,R1    1                 INCREMENT TO NEXT CHARACTER
+         B        MON9
+*
+MOND     RES      0
+         CI,R7    KCR               CARRIAGE RETURN
+         BE       MONF
+         CI,R7    KEX               ESCAPE CHARACTER
+         BNE      MONE
+         LB,R7    *R4,R1            ESCAPED CHARACTER
+         AI,R1    1                 INCREMENT TO NEXT CHARACTER
+*
+MONE     RES      0
+         CW,R3    R6                SEE IF MORE THAN 80 CHARACTERS
+         BGE      MONC              DON'T STORE IF IT IS
+         STB,R7   0,R3              PLACE INTO STRING
+         AI,R3    1                 INCREMENT DESCRIPTOR POINTER
+         B        MONC
+*
+MONF     RES      0
+         STW,R1   FCBNEXT,R2        RESTORE LINE POINTER
+         B        MONXIT
+*
+MONR1    RES      0
+         BAL,R14  G:READ            READ A LINE FROM CONSOLE KEYBOARD
+         BGEZ     MONR2             BRANCH IF LINE READY
+         BAL,R14  G:SLEEP           OTHERWISE SLEEP UNTIL INTERACTION
+         B        MONR1             THEN READ AGAIN
+*
+MONR2    RES      0
+         LI,R2    G:MSGBFR          ADDRESS OF MESSAGE BUFFER
+         SLS,R2   2                 CONVERT TO BYTE ADDRESS
+         LW,R1    G:MSGCNT          GET LENGTH
+         AI,R1    -1                DON'T COUNT CARRIAGE RETURN ON END
+         CI,R1    80                SEE IF LONGER THAN ALLOWED
+         BLE      MONR3             SKIP IF OK
+         LI,R1    80                MAXIMUM
+*
+MONR3    RES      0
+         STB,R1   R3                SET BYTE COUNT FOR MOVE
+         MBS,R2   0                 MOVE MESSAGE INTO DESCIPTOR
+         B        MONXIT            RETURN
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  WRITE TEXT (2)
+*
+*        INPUT:   LOGICAL UNIT NUMBER
+*                 OUTPUT STRING (DESCRIPTOR)
+*
+*        OUTPUT:  (NONE)
+*
+*        ON LINE OF (EBCDIC) TEXT IS WRITTEN INTO THE SPECIFIED FILE
+*        (OR THE CONSOLE).  IF THE UNIT IS UNASSIGNED, AN ABORT OCCURS.
+*
+*        DURING THIS ROUTINE, THE REGISTERS ARE ALLOCATED AS:
+*
+*                 (R1) = BYTE INDEX INTO TEXT PAGE
+*                 (R2) = INDEX INTO FCB TABLES
+*                 (R3) = STRING DESCRIPTOR
+*                 (R4) = BLANK COMPRESSION COUNT (-1,-N)
+*                 (R5) = BYTE INDEX TO START OF LINE
+*
+MONVFF   TEXT     '  10'
+MONVFG   DATA,1   0,X'F1',X'C1',0
+MONVFC   EQU      2
+MONWXC   DATA,1   0,KCR,KEX,X'FC',X'FD',X'FE',X'FF',0
+LINELENG EQU      79                MAX LENGTH OF LINE TO G:PRINT
+*
+MONWTX   RES      0
+         LCI      2
+         PLM,R2  *XPLREG            GET ARGUMENTS
+         LW,R0    R2                GET LOGICAL UNIT NUMBER
+         LW,R10   R2                SAVE UNIT NUMBER FOR CHECK LATER
+         BAL,R15  FCBFIND           FIND FCB FOR UNIT
+         B        MONW0             ERROR IF NOT ASSIGNED
+         CI,R2    FCB:FILE          SEE IF CONSOLE WAS SELECTED
+         BANZ     MONW15            BRANCH IF IT IS
+         CI,R2    FCB:TEXT          CHECK FOR TEXT FILE
+         BAZ      MONW0             ERROR IF NOT TEXT FILE
+         CI,R2    FCB:OUT           CHECK FOR OUTPUT FILE
+         BANZ     MONW1             OK IF OUTPUT TEXT FILE
+*
+MONW0    RES      0
+         LI,R1    BA(MSGXP7)        'ILLEGAL XPL I/O UNIT'
+         B        MONERR
+*
+MONW1    RES      0
+         LI,R4    BA(TTBSTABL)      CHECK STRING FOR ESCAPE CHARACTERS
+         LW,R5    R3                GET DESCRIPTOR FOR STRING
+         LI,R2    1                 LOAD MASK
+         STB,R2   R4                STORE MASK
+         TTBS,R4  0                 SET BIT 4 OF COND. CODE IF FOUND
+         BL       MONW1A
+*
+         LI,R2    0                 NO ESCAPE CHARS.
+         B        MONW1B
+*
+MONW1A   RES      0
+         LI,R2    1                 THERE ARE ESCAPE CHARS.
+*
+MONW1B   STW,R2   ESCSWTCH
+         LW,R2    R1                INDEX TO FCB INTO (R2)
+         LW,R8    FCBMAP,R2         POINTER TO MAP PAGE
+         LW,R9    FCBDATA,R2        POINTER TO DATA PAGE
+         LW,R1    FCBNEXT,R2        GET BYTE POINTER FOR OUTPUT
+         LI,R0    253               MAXIMUM LINE SIZE
+         AW,R0    R1                ASSUME NO SQUEEZING
+         CI,R0    2046              MUST LEAVE ROOM FOR TWO MORE
+         BLE      MONW3             OK IF IT FITS ON PRESENT PAGE
+         LI,R0    X'FF'             END OF PAGE MARK
+         STB,R0  *R9,R1             SET END OF PAGE MARK IN CURRENT PAGE
+         MTW,+1   FCBPAGE,R2        INCREMENT PAGE NUMBER
+         LW,R1    FCBPAGE,R2        NUMBER OF PRESENT PAGE
+         AI,R1    9                 CORRECT FOR INDEXING
+         LH,R13  *R8,R1             GET PAGE NUMBER FOR TEXT
+         LW,R0    R9                ADDRESS OF DATA PAGE
+         SLS,R0   -9
+         STH,R0   R13
+         STB,R2   R13
+         BAL,R14  G:COUPLE
+         BEZ      MONW2
+         LI,R1    BA(MSGXP6)
+         B        MONERR            'ERROR IN XPL WRITE'
+*
+MONW2    RES      0
+         LI,R0    X'FE'             END OF FILE MARK
+         STB,R0  *R9                UPDATE NEWEST PAGE
+         LI,R1    0                 NEW INDEX FOR TEXT
+*
+MONW3    RES      0
+         LW,R5    R1                SAVE START OF LINE
+         AI,R5    252               INCREMENT TO MAXIMUM END
+         LI,R4    -1                RESET BLANK COUNT
+         AI,R1    1
+         CI,R10   0                 SEE IF UNIT NUMBER ORIGINALLY 0
+         BNEZ     MONW3A            IF NOT CHECK FOR FORMAT CONTROL
+         LI,R0    0                 ASCII BLANK
+         STB,R0  *R9,R1             PLACE INTO LINE
+         AI,R1    1                 INCREMENT TO NEXT CHARACTER
+         LI,R4    0                 SET BLANK TO ONE
+         B        MONW3D
+*
+MONW3A   RES      0
+         MTB,0    R3                NULL LINE IS SPECIAL CASE
+         BEZ      MONW3D            DON'T PUT OUT FORMAT CONTROL
+         LW,R0    FCBTYPE,R2        GET TYPE FOR UNIT
+         CI,R0    FCB:FRMT          SEE IF FORMAT CONTROL SET
+         BAZ      MONW3D            BRANCH IF NOT FORMAT CONTROL
+         LI,R0    X'FC'             VERTICAL CONTROL
+         STB,R0  *R9,R1             PLACE AT START OF LINE
+         LB,R7    0,R3              GET FIRST CHARACTER
+         LI,R6    MONVFC            NUMBER OF FORMAT CHARACTERS
+*
+MONW3B   RES      0
+         CB,R7    MONVFF,R6         IS IT THIS ONE
+         BE       MONW3C
+         BDR,R6   MONW3B            IF NOT, KEEP LOOKING
+         B        MONW3D            IF NOT ONE, IGNORE
+*
+MONW3C   RES      0
+         LB,R0    MONVFG,R6         OTHERWISE GET GORDO CONTROL CODE
+         AI,R1    1
+         STB,R0  *R9,R1             PLACE INTO LINE
+         AI,R1    1
+*
+MONW3D   RES      0
+         LB,R0    R3                GET BYTE COUNT
+         AI,R0    1                 INCREMENT BY ONE FOR LOOP
+         STB,R0   R3                SET COUNT INTO DESCRIPTOR
+*
+MONW4    RES      0
+         CW,R1    R5                SEE IF TOO MANY IN LINE ALREADY
+         BGE      MONW12            QUIT IF SO
+         MTB,-1   R3                SEE IF ALL OF STRING DONE
+         BEZ      MONW12
+         LB,R7    0,R3              LOAD BYTE
+         MTW,+1   R3                INCREMENT POINTER
+         CI,R7    '  '
+         BNEZ     MONW5             SKIP IF NOT BLANK
+         AI,R4    1                 INCREMENT BLANK COUNT
+         BNEZ     MONW4
+         B        MONW11
+*
+MONW5    RES      0
+         CI,R4    0
+         BLEZ     MONW6             READY TO INSERT (NO BLANKS)
+         AI,R1    -1                BACKSPACE OVER BLANK
+         LI,R0    X'FD'
+         STB,R0  *R9,R1             SET HORIZONTAL TAB
+         AI,R1    1
+         AI,R4    1                 INCREMENT FOR TRUE COUNT
+         STB,R4  *R9,R1             SET COUNT
+         AI,R1    1                 INCREMENT POINTER
+*
+MONW6    RES      0
+         LI,R4    -1                RESET BLANK COUNT
+         MTW,0    ESCSWTCH          ARE THERE ANY ESCAPE CHARACTERS
+         BEZ      MONW11            IF NOT, DON'T CHECK
+         LI,R6    6                 NUMBER OF ESCAPED CHARACTERS
+*
+MONW9    RES      0
+         CB,R7    MONWXC,R6         SEE IF THIS IS ONE
+         BE       MONW10            BRANCH IF IT IS
+         BDR,R6   MONW9
+         B        MONW11            OTHERWISE READY TO PLACE IN TEXT
+*
+MONW10   RES      0
+         LI,R0    KEX               ESCAPE CHARACTER
+         STB,R0  *R9,R1             PLACE INTO TEXT
+         AI,R1    1                 INCREMENT POINTER
+*
+MONW11   RES      0
+         STB,R7  *R9,R1             PLACE INTO TEXT FILE
+         AI,R1    1                 INCREMENT POINTER
+         B        MONW4             GET NEXT CHARACTER
+*
+MONW12   RES      0
+         CI,R4    0
+         BL       MONW13
+         AI,R1    -1                DECREMENT OVER PREVIOUS BLANK
+*
+MONW13   RES      0
+         LI,R0    KCR
+         STB,R0  *R9,R1             PLACE CARRIAGE RETURN ON END
+         LW,R0    R1                PRESENT POINTER
+         AI,R5    -252              RECOVER START OF LINE POINTER
+         SW,R0    R5                SUBTRACT ORIGINAL VALUE
+         STB,R0   *R9,R5            PLACE AT START OF LINE
+         AI,R1    1                 INCREMENT LINE POINTER
+         LI,R0    X'FE'             END OF FILE MARK
+         STB,R0  *R9,R1
+         STW,R1   FCBNEXT,R2        SAVE FOR NEXT CALL
+         MTW,+1   FCBLINE,R2        INCREMENT NUMBER OF LINES IN FILE
+         LI,R1    2                 INDEX TO NUMBER OF LINES IN FILE
+         LW,R0    FCBLINE,R2        CURRENT NUMBER OF LINES
+         STW,R0  *R8,R1             UPDATE TEXT FILE
+         LI,R1    1                 INDEX TO LAST PAGE OF FILE
+         LW,R0    FCBPAGE,R2        CURRENT PAGE OF FILE
+         STW,R0  *R8,R1             UPDATE TEXT FILE
+         B        MONXIT            ALL DONE
+*
+*                          WRITE OUT AN XPL DESCRIPTOR ON THE CONSOLE.
+*                          IF LONGER THAN 79 CHARS., SPLIT AND WRITE 2
+*                          LINES.
+*
+MONW15   RES      0                 WRITE ON SCREEN
+         LB,R1    R3                GET BYTE COUNT
+         BNEZ     MONW16            BRANCH IF NOT NULL DESCRIPTOR
+*
+         LI,R2    0                 NULL DESC. - MUST WRITE 1 BLANK.
+         STW,R2   WRTBFR
+         LI,R13   BA(WRTBFR)        FORM DESCRIPTOR POINTING TO BLANK
+         LI,R2    1                 LENGTH IS ONE
+         STB,R2   R13
+         B        MONW19            WRITE IT
+*
+MONW16   RES      0                 GET RID OF TRAILING BLANKS.  SINCE
+*                                   XPL FORMS 80-CHARACTER LINES, AND
+*                                   G:PRINT ACCEPTS 79 CHARS., WE MUST
+*                                   AVOID PUTTING 2 LINES ON THE SCOPE
+*                                   WHEN ONLY ONE LINE WAS WANTED.
+         LW,R13   R3                COPY DESCRIPTOR
+MONW17   RES      0
+         AI,R1    -1                DECREMENT INDEX (START AT LAST BYTE)
+         BEZ      MONW18            IF ONE BLANK LEFT, DON'T DELETE IT
+         LW,R3    R13               COPY DESCRIPTOR WHICH WAS DESTROYED
+         AW,R3    R1                FORM BYTE ADDRESS
+         LB,R2    0,R3              SEE IF BLANK
+         BEZ      MONW17            BRANCH IF IT IS
+*
+MONW18   RES      0                 NOW SPLIT INTO 2 LINES IF > 79 CHAR.
+         AI,R1    1                 GET NEW LENGTH
+         STB,R1   R13               STORE NEW LENGTH
+         AI,R1    -LINELENG         IS LENGTH <= 79
+         BLEZ     MONW19            READY TO WRITE IF SO
+*
+         LW,R3    R13               COPY DESCRIPTOR
+         STB,R1   R3                STORE LENGTH OF REST
+         LI,R1    LINELENG          NO. CHARS ALLOWED BY G:PRINT
+         AW,R3    R1                INCREMENT BEGINNING ADDR. OF REST
+         STB,R1   R13               WRITE 79 CHARS. FOR FIRST PART
+         BAL,R14  G:PRINT           WRITE FIRST PART
+         LW,R13   R3                READY TO WRITE REST
+*
+MONW19   RES      0
+         BAL,R14  G:PRINT           OUTPUT DESCRIPTOR
+         B        MONXIT
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  DATE AND TIME (3)
+*
+*        INPUT:   (NONE)
+*
+*        OUTPUT:  DATE AND TIME
+*
+*        THE CURRENT DATE AND THE TIME-OF-DAY ARE RETURNED.
+*
+*
+MONTMS   DATA     X'0000FFFF'       MASK FOR DAY
+MONFIV   DATA     X'00050000'       FIVE FOR 'DH' INSTRUCTION
+MON24H   DATA     8640000           CENTISECONDS IN A DAY
+*
+MONDTM   RES      0
+         BAL,R14  G:CLOCK           READ DATE AND TIME
+         DH,R13   MONFIV            TIME/5 FOR CENTISECONDS
+*
+MONDTM1  RES      0
+         CW,R13   MON24H            CHECK FOR OVER TWENTY FOUR HOURS
+         BL       MONDTM2           OK IF IT IS
+         SW,R13   MON24H            OTHERWISE DECREMENT TIME
+         AI,R12   1                 INCREMENT DAY
+         B        MONDTM1           GO AGAIN
+*
+MONDTM2  RES      0
+         LI,R0    365               NUMBER OF DAYS IN YEAR
+         CI,R12   X'30000'          CHECK LOW BITS OF YEAR
+         BANZ     MONDTM3           SKIP IF NOT LEAP YEAR
+         LI,R0    366               NUMBER OF DAYS IN LEAP YEAR
+*
+MONDTM3  RES      0
+         LI,R1    1
+         CH,R0    R12,R1            MAXIMUM AGAINST DAY
+         BGE      MONDTM4           SKIP IF OK
+         SW,R12   R0                OTHERWISE DECREMENT DAY
+         MTH,+1   R12               INCREMENT YEAR
+         B        MONDTM2           GO AGAIN
+*
+MONDTM4  RES      0
+         LI,R1    1000
+         LH,R0    R12               GET YEAR
+         AI,R0    -1900             KEEP ONLY LOW TWO DIGITS
+         MW,R1    R0                YEAR*1000 FOR DATE
+         AND,R12  MONTMS            KEEP ONLY DAY
+         AW,R12   R1                COMPUTE YYDDD
+         LCI      2                 ARG(1) <== DATE
+         PSM,R12 *XPLREG            ARG(2) <== TIME
+         B        MONXIT            ALL DONE
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  EXIT (4)
+*
+*        INPUT:   DIAGNOSTIC VALUE
+*
+*        OUTPUT:  (NONE)
+*
+*        A NORMAL EXIT IS PERFORMED FROM A PROGRAM.  A MESSAGE IS
+*        PLACED ON THE SCREEN AND THE MASTER RESUMES COMMAND MODE.
+*
+*
+MONEXT   RES      0
+         LI,R1    BA(MSGXP8)
+         BAL,R15  WRTSEG            'DIAGNOSTIC VALUE ='
+         PLW,R0  *XPLREG            GET DIAGNOSTIC VALUE
+         CI,R0    0                 IF 0, DON'T WRITE 'DIAG. VALUE'
+         BEZ      MONEXT1
+*
+         LI,R1    8
+         BAL,R15  WRTDEC            WRITE IT OUT
+         BAL,R15  WRTOUT
+*
+MONEXT1  RES      0
+         LI,R1    BA(MSGXP2)
+         B        MONERR            'NORMAL EXIT FROM XPL'
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALLS:  READ BINARY (5)
+*                                   WRITE BINARY (6)
+*
+*        INPUT:   UNIT NUMBER
+*                 RECORD NUMBER
+*                 BUFFER
+*
+*        OUTPUT:  (NONE)
+*
+*        ONE BINARY RECORD (512 WORDS--ONE PAGE) IS TRANSFERRED BETWEEN
+*        THE ASSOCIATED BINARY FILE AND THE PROGRAM.  THE FILE MUST
+*        HAVE THE ATTRIBUTE OF BINARY AND IT MUST HAVE THE APPROPRIATE
+*        ACCESS ATTRIBUTE.
+*
+MONRBN   RES      0
+         LI,R3    FCB:IN            SET READ SWITCH
+         B        MON10
+*
+MONWBN   RES      0
+         LI,R3    FCB:OUT           SET WRITE SWITCH
+         B        MON10
+*
+*        (R3) = FCB:IN, IF READ OPERATION
+*               FCB:OUT, IF WRITE OPERATION
+*
+MON10    RES      0
+         LCI      3
+         PLM,R10 *XPLREG            LOAD ARGUMENTS
+         LW,R0    R10               GET LOGICAL UNIT NUMBER
+         BAL,R15  FCBFIND           FIND FCB FOR LOGICAL UNIT
+         B        MONW0             ERROR IF UNIT NOT ASSIGNED
+         CI,R2    FCB:TEXT+FCB:FILE  SEE IF TEXT FILE
+         BANZ     MON10A            ERROR IF NOT BINARY FILE
+         CW,R2    R3                NOW CHECK FOR CORRECT ACCESS
+         BAZ      MON10A            ERROR IF ACCESS NOT ALL RIGHT
+         LW,R13   R11               FILE PAGE NUMBER
+         AI,R13   1                 ***  OFFSET CORRECTION
+         LI,R0    XPLBIN            ADDRESS OF VIRTUAL PAGE
+         SLS,R0   -9                GET PAGE NUMBER
+         STH,R0   R13
+         STB,R1   R13               SET KEYWORD
+         BAL,R14  G:COUPLE          COUPLE IN PAGE
+         BEZ      MON11             OK IF NOT ERROR
+*
+MON10A   RES      0
+         LI,R1    BA(MSGXP4)
+         B        MONERR            'ERROR IN XPL BINARY READ/WRITE'
+*
+MON11    RES      0
+         LI,R13   XPLBIN            ADDRESS OF PAGE
+         SLS,R13  2                 SHIFT TO BYTE ADDRESS
+         CI,R3    FCB:IN            SEE IF INPUT OPERATION
+         BAZ      MON12             BRANCH IF WRITE (OUTPUT)
+         XW,R12   R13               INTERCHANGE SOURCE AND DESTINATION
+*
+MON12    RES      0
+         LI,R1    8
+         LI,R0    255
+*
+MON13    RES      0
+         STB,R0   R13               SET COUNT=255
+         MBS,R12  0                 MOVE DATA
+         BDR,R1   MON13
+         LI,R0    8
+         STB,R0   R13               COUNT=8
+         MBS,R12  0                 MOVE LAST 8 BYTES
+         B        MONXIT
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  START TRACE (7)
+*
+*        INPUT:   (NONE)
+*
+*        THIS SERVICE IS CURRENTLY UNIMPLEMENTED.  A MESSAGE IS PLACED
+*        ON THE SCREEN BUT NO ACTION IS TAKEN.
+*
+MONSTR   RES      0
+         LI,R1    BA(MSGXP10)
+         BAL,R15  WRTSEG            'BEGIN XPL TRACE MODE'
+         BAL,R15  WRTOUT
+         B        MONXIT
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  END TRACE (8)
+*
+*        INPUT:   (NONE)
+*
+*        OUTPUT:  (NONE)
+*
+*        THIS SERVICE IS CURRENTLY UNIMPLEMENTED.  A MESSAGE IS PLACED
+*        ON THE SCREEN BUT NO ACTION IS TAKEN.
+*
+MONETR   RES      0
+         LI,R1    BA(MSGXP11)
+         BAL,R15  WRTSEG            'TERMINATE XPL TRACE MODE'
+         BAL,R15  WRTOUT
+         B        MONXIT
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  ASSIGN UNIT (9)
+*
+*        INPUT:   FILE TYPE
+*                 LOGICAL UNIT NUMBER
+*                 FILE NAME (DESCRIPTOR)
+*
+*        OUTPUT:  0, IF ASSIGN MADE
+*                 1, OTHERWISE
+*
+*        A FILE (OR THE CONSOLE) IS ASSIGNED TO A LOGICAL I/O UNIT.  IF
+*        THE UNIT NUMBER HAS BEEN PREVIOUSLY ASSIGNED THE OLD ASSIGNMENT
+*        IS SUPERSEDED.  IF THE CONSOLE HAS BEEN PREVIOUSLY ASSIGNED THE
+*        OLD ASSIGNMENT IS SUPERSEDED.
+*
+         LOCAL    MONASU1,MONASU2,MONASU3,MONASU4,MONASU5,MONASU6
+         LOCAL    MONASU7,MONASU8,MONASU9,MONASU10,MONASU11,MONASU12
+         LOCAL    MONASU13
+         LOCAL    FCBBITS,FCBMBS,FCBHEAD
+*
+FCBMBS   GEN,8,24 10,BA(FCBOPN)+10  FILE NAME IN OPEN BLOCK
+         BOUND    8
+FCBBITS  DATA     X'7F'             VALID TYPE BITS FOR FCB
+FCBHEAD  DATA     X'E0E0E0E0'       TEXT FILE HEADER
+*
+MONASU   RES      0
+         LCI      3
+         PLM,R4  *XPLREG            GET ARGUMENTS (DESC,UNIT,TYPE)
+         AND,R6   FCBBITS           KEEP ONLY VALID FCB BITS
+         AI,R6    FCB:USED          TURN ON IN-USE BIT
+         LW,R0    R5                GET LOGICAL UNIT NUMBER
+         BAL,R15  FCBFIND           FIND FCB FOR UNIT
+         B        MONASU1           OK IF NOT FOUND
+         LI,R2    0
+         STW,R2   FCBTYPE,R1        IF FOUND DELETE ENTRY
+*
+MONASU1  RES      0
+         CI,R6    FCB:FILE          SEE IF A FILE IS REQUESTED
+         BAZ      MONASU4           BRANCH IF IT IS A FILE
+         STW,R0   FCBUNIT           SET NEW UNIT NUMBER FOR CONSOLE
+         STW,R6   FCBTYPE           SET TYPE FLAGS FOR CONSOLE
+*
+MONASU2  RES      0
+         LI,R0    0                 SUCCESSFUL COMPLETEION
+*
+MONASU3  RES      0
+         PSW,R0  *XPLREG            PUSH RETURN CODE ONTO STACK
+         B        MONXIT            EXIT
+*
+MONASU4  RES      0
+         LI,R7    NFCB-1            NUMBER OF FCB'S
+*
+MONASU5  RES      0
+         MTW,0    FCBTYPE,R7        SEE IF KEYWORD UNASSIGNED
+         BEZ      MONASU7           OK IF ONE FOUND
+         BDR,R7   MONASU5           OTHERWISE KEEP SCANNING FOR EMPTY
+*
+MONASU6  RES      0
+         LI,R0    1                 ERROR CONDITION
+         B        MONASU3           UNSUCCESSFUL RETURN
+*
+MONASU7  RES      0
+         STW,R0   FCBUNIT,R7        SET LOGICAL UNIT NUMBER
+         STW,R6   FCBTYPE,R7        SET TYPE
+         LW,R1    FCBMBS            MBS TO CLEAR FILE NAME
+         MBS,R0   BA(XPLBLANK)      CLEAR FILE NAME FROM OPEN BLOCK
+         LB,R0    R4                LENGTH FROM DESCRIPTOR
+         CI,R0    10                NO MORE THAN TEN CHARACTERS
+         BLE      MONASU8           OK IF NOT TOO MANY
+         LI,R0    10                OTHERWISE TRUNCATE
+*
+MONASU8  RES      0
+         LW,R5    FCBMBS            ADDRESS OF FILE NAME
+         STB,R0   R5                SET LENGTH
+         MBS,R4   0                 MOVE NAME FROM STRING
+         LI,R0    0                 FULL ACCESS (FOR WRITE)
+         CI,R6    FCB:OUT           SEE IF OUTPUT
+         BANZ     MONASU9           ACCESS CORRECT IF OUTPUT FILE
+         LI,R0    X'80'             READ ACCESS
+*
+MONASU9  RES      0
+         AW,R0    G:SECURE          ADD IN SECURITY LEVEL
+         STB,R0   FCBOPN+1          SET ACCESS INTO OPEN BLOCK
+         LW,R0    R7                GET KEYWORD
+         AI,R0    X'C0'             OPEN FROM ROOT DIRECTORY
+         LI,R13   FCBOPN+1          ARGUMENT TO OPEN
+         STB,R0   R13               SET KEYWORDS FOR OPEN
+         BAL,R14  G:OPEN            TRY TO OPEN FILE FROM PUBLIC
+         BEZ      MONASU11          ALL SET IF SUCCESSFUL
+         LW,R13   UTLPUB            OPEN ARGUMENT FOR PUBLIC
+         STB,R0   R13               SET KEYWORDS
+         BAL,R14  G:OPEN            OPEN PUBLIC
+         LW,R1    R7                KEYWORD FOR FILE
+         SLS,R1   4
+         AW,R1    R7                USE FOR BOTH KEYWORDS
+         LI,R13   UTLGND            ARGUMENT FOR GENERAL
+         STB,R1   R13               SET KEYWORDS
+         BAL,R14  G:OPEN            OPEN UP GENERAL
+         LI,R13   FCBOPN+1          GET OPEN ARGUMENT
+         STB,R1   R13               SET KEYWORDS
+         BAL,R14  G:OPEN            TRY TO OPEN FROM GENERAL
+         BEZ      MONASU10          FOUND IT, NOW ENTER
+         LW,R13   UTLPUB            OPEN FOR PUBLIC
+         STB,R0   R13
+         BAL,R14  G:OPEN            OPEN UP PUBLIC
+         LI,R13   FCBOPN+1          ARGUMENT TO OPEN FILE
+         STB,R1   R13               SET KEYWORDS
+         BAL,R14  G:OPEN            TRY TO OPEN FILE FROM PUBLIC
+         BEZ      MONASU10          IF OPENED, READY TO ENTER
+         CI,R6    FCB:NEW           SEE IF NEW FILE SHOULD BE CREATED
+         BAZ      MONASU6           ERROR RETURN IF NOT
+         LI,R13   1000              MAXIMUM NUMBER OF PAGES
+         STH,R7   R13               SET KEYWORD FOR CREATE
+         LB,R1    FCBOPN+1          GET ACCESS AND SECURITY
+         STB,R1   R13               SET INTO ARGUMENT
+         BAL,R14  G:CREATE          THEN CREATE A SCRATCH FILE
+         BNEZ     MONASU6           ERROR IF UNABLE TO CREATE FILE
+*
+MONASU10 RES      0
+         CI,R6    FCB:ROOT          SEE IF SHOULD ENTER FILE IN ROOT DIR
+         BANZ     MONASU11          BRANCH IF NOT
+         LI,R13   FCBOPN+1          ARGUMENT TO ENTER
+         STB,R0   R13               SET KEYWORDS FOR ROOT
+         BAL,R14  G:ENTER           ENTER FILE INTO ROOT
+*
+MONASU11 RES      0
+         CI,R6    FCB:TEXT          SEE IF A TEXT FILE
+         BAZ      MONASU2           ALL FINISHED IF NOT
+         LI,R0    XPLMAP            ADDRESS FOR MAP PAGES
+         SLS,R0   -9                CONVERT TO PAGE NUMBER
+         AW,R0    R7                GET APPROPRIATE ONE FOR THIS FILE
+         LI,R13   1                 FILE PAGE OF MAP
+         STH,R0   R13               SET VIRTUAL PAGE
+         SLS,R0   9                 BACK TO WORD ADDRESS
+         STW,R0   FCBMAP,R7         SET POINTER IN FCB
+         STB,R7   R13               SET KEYWORD FOR COUPLE
+         BAL,R14  G:COUPLE          COUPLE DOWN THE MAP PAGE
+         BNEZ     MONASU6           ERROR IF UNABLE TO COUPLE
+         LI,R8    0                 FLAG SAYING ALREADY A TEXT FILE
+         LW,R1    FCBHEAD           SEE IF FILE IS TYPED AS TEXT
+         CW,R1   *R0                GET FIRST WORD OF MAP PAGE
+         BE       MONASU13          SKIP IF ALREADY A TEXT FILE
+         LI,R8    1                 CLEAR TEXT FILE FLAG
+         STW,R1  *R0                SET HEADER INTO FILE
+         AI,R0    1                 POINT TO LAST PAGE INDEX
+         LI,R1    1
+         STW,R1  *R0                FIRST TEXT PAGE IS LAST ONE
+         AI,R0    1                 POINT TO LINE COUNT
+         LI,R1    0
+         STW,R1  *R0                FILE INITIALLY HAS NO LINES
+         AI,R0    502               POINT JUST BEYOND MAP PAGE
+         LI,R1    X'20003'          FIRST MAP ENTRY
+         LI,R2    -499              NUMBER OF WORDS IN MAP
+*
+MONASU12 RES      0
+         STW,R1  *R0,R2             SET MAP ENTRY
+         AI,R1    X'20002'          UPDATE MAP ENTRY
+         BIR,R2   MONASU12          INITIALIZE ENTIRE PAGE MAP
+*
+MONASU13 RES      0
+         LI,R0    0
+         STW,R0   FCBLINE,R7        BEGIN AFTER LINE 0
+         STW,R0   FCBNEXT,R7        BEGIN AT START OF PAGE
+         LI,R0    1
+         STW,R0   FCBPAGE,R7        BEGIN AT FIRST PAGE
+         LI,R13   2                 FILE PAGE NUMBER
+         LI,R0    XPLDATA           ADDRESS OF TEXT PAGE
+         SLS,R0   -9                CONVERT TO PAGE NUMBER
+         AW,R0    R7                GET ONE FOR THIS FILE
+         STH,R0   R13               SET FILE PAGE NUMBER
+         SLS,R0   9                 SHIFT BACK TO WORD ADDRESS
+         STW,R0   FCBDATA,R7        SET POINTER IN FCB
+         STB,R7   R13               SET KEYWORD IN ARGUMENT
+         BAL,R14  G:COUPLE          COUPLE IN DATA PAGE
+         BNEZ     MONASU6           ERROR IF UNABLE TO COUPLE
+         CI,R8    0                 SEE IF TEXT FILE BEING FORMATTED
+         BEZ      MONASU2           DONE IF NOT
+         LI,R8    X'FE'             END-OF-FILE MARK
+         STB,R8  *R0                SETUP DATA PAGE FOR NEW TEXT FILE
+         B        MONASU2           END OF SUCCESSFUL ASSIGN
+*
+         PAGE
+*
+*        SUBMONITOR SERVICE CALL:  ERROR EXIT (10)
+*
+*        INPUT:   SOURCE LINE NUMBER
+*
+*        OUTPUT:  (NONE)
+*
+*        AN ABNORMAL EXIT IS PERFORMED FROM THE PROGRAM.  THE SOURCE
+*        LINE NUMBER IS PLACED ON THE SCREEN AND THE MASTER RESUMES
+*        COMMAND MODE.
+*
+MONERX   RES      0
+         LI,R1    BA(MSGXP9)
+         BAL,R15  WRTSEG            'SOURCE LINE NUMBER ='
+         PLW,R0  *XPLREG
+         LI,R1    5
+         BAL,R15  WRTDEC            WRITE OUT SOURCE LINE NUMBER
+         BAL,R15  WRTOUT
+         LI,R1    BA(MSGXP3)
+         B        MONERR            'ERROR EXIT FROM XPL'
+*
+         PAGE
+*
+*        FIND FCB FOR LOGICAL UNIT
+*
+*        INPUT:   (R0) = LOGICAL UNIT NUMBER
+*                 (R15) = RETURN ADDRESS
+*
+*        OUTPUT:  (R0) = LOGICAL UNIT (0 CHANGED TO 1)
+*                 (R1) = INDEX INTO FCB TABLES
+*                 (R2) = TYPE FLAGS FOR UNIT
+*
+*        THE FCB TABLES ARE SCANNED, CHECKING FOR AN ASSIGNED UNIT
+*        MATCHING THE LOGICAL UNIT NUMBER.  UNIT NUMBER 0 IS EQUIVALENT
+*        TO UNIT NUMBER 1.
+*
+         LOCAL    F1,F2,F3,F4
+*
+FCBFIND  RES      0
+         CI,R0    0                 SEE IF LOGICAL UNIT ZERO
+         BNEZ     F1                OK IF IT ISN'T
+         LI,R0    1                 OTHERWISE CHANGE TO ONE
+*
+F1       RES      0
+         LI,R1    NFCB-1            NUMBER OF FCB'S
+*
+F2       RES      0
+         LW,R2    FCBTYPE,R1        LOOK AT TYPE FOR ENTRY
+         CI,R2    FCB:USED          SEE IF THIS KEYWORD IS ASSIGNED
+         BAZ      F3                SKIP IF NOT ASSIGNED
+         CW,R0    FCBUNIT,R1        OTHERWISE CHECK UNIT NUMBER
+         BE       F4                SUCCESS IF FOUND
+*
+F3       RES      0
+         MTW,-1   R1                TRY NEXT FCB
+         BGEZ     F2
+         B       *R15               UNSUCCESSFUL RETURN
+*
+F4       RES      0
+         MTW,+1   R15               INCREMENT TO SUCCESS
+         B       *R15               RETURN
+*
+         PAGE
+*
+*
+*
+*                 ***********************
+*                 *                     *
+*                 * USER CORE INTERFACE *
+*                 *                     *
+*                 ***********************
+*
+*
+*
+         BOUND    8
+USRMBS   DATA     BA(G:MSGCNT)
+         GEN,8,24 132,BA(USRMCT)
+USRMSK   DATA     X'1FFFF'
+*
+USRGET   RES      0
+         AND,R3   USRMSK
+         CI,R3    16
+         BL       USRGTR
+         LW,R2    *R3
+         B        *R15
+*
+USRGTR   RES      0
+         LW,R2    USRREG,R3
+         B        *R15
+*
+USRPUT   RES      0
+         AND,R3   USRMSK
+         CI,R3    16
+         BL       USRPTR
+         STW,R2   *R3
+         B        *R15
+*
+USRPTR   RES      0
+         STW,R2   USRREG,R3
+         B        *R15
+*
+USRTBL   RES      0
+         B        USRBRA
+         B        USRBRA
+         B        USRXEC
+         B        USREXU
+         B        USRBRA
+         B        USRBRA
+         B        USRBAL
+         BOUND    8
+*
+USRBRK   BDR,R0   0
+         BAL,R0   0
+USREAD   DATA     X'800FFFFF'
+USRRGM   DATA     X'F'
+USRBRX   B        USRBRS
+USROPM   DATA     X'7F000000'
+*
+USRSTP   RES      0
+         PSW,R15  WRKSTK
+         LCI      2
+         PSM,R2   WRKSTK
+         LW,R3    USRPSW
+*
+USRCHK   RES      0
+         BAL,R15  USRGET
+         STW,R2   USRINS
+         LW,R3    USROPM
+         LS,R3    R2
+         CLM,R3   USRBRK
+         BCS,9    USRXEC
+         SW,R3    USRBRK
+         SAS,R3   -24
+         B        USRTBL,R3
+*
+USREXU   RES      0
+         LCI      15
+         PSM,R1   WRKSTK
+         LCI      0
+         LM,R0    USRREG
+         ANLZ,R0  USRINS
+         LCI      15
+         PLM,R1   WRKSTK
+         LW,R3    R0
+         B        USRCHK
+*
+USRBAL   RES      0
+         LCI      15
+         PSM,R1   WRKSTK
+         LCI      0
+         LM,R0    USRREG
+         ANLZ,R0  USRINS
+         LCI      15
+         PLM,R1   WRKSTK
+         MTW,1    USRPSW
+         LW,R1    USRPSW
+         AND,R1   USRMSK
+         LW,R3    R2
+         SAS,R3   -20
+         AND,R3   USRRGM
+         STW,R1   USRREG,R3
+         LW,R1    USRMSK
+         STS,R0   USRPSW
+         AND,R0   R1
+         CI,R0    X'1E000'
+         BL       USRXIT            DONE IF NOT SYSTEM CALL
+*
+USRSYS   RES      0
+         LW,R13   XECMVI
+         BAL,R14  G:MOVEIO
+         LW,R13   XECMVI
+         LW,R0    USRMCT
+         STB,R0   R13
+         BAL,R14  G:MOVEIO
+         LW,R0    USRREG+14
+         LW,R13   USRREG+13
+         BAL,R14  *USRPSW
+         STCF     0
+         STW,R13  USRREG+13
+         STW,R0   USRPSW
+         LD,R2    USRMBS
+         MBS,R2   0
+         B        USRXIT
+*
+USRBRA   RES      0
+         LCI      15
+         PSM,R1   WRKSTK
+         LCI      0
+         LM,R0    USRREG
+         ANLZ,R0  USRINS
+         LCI      15
+         PLM,R1   WRKSTK
+         LW,R3    USREAD
+         LS,R2    USRBRX
+         STW,R2   USRINS
+         LW,R2    R0
+*
+USRXEC   RES      0
+         LW,R13   XECMVI
+         BAL,R14  G:MOVEIO
+         LW,R13   XECMVI
+         LW,R0    USRMCT
+         STB,R0   R13
+         BAL,R14  G:MOVEIO
+         LCI      0
+         PSM,R0   WRKSTK
+         LCI      0
+         LM,R0    USRREG
+         LCF      USRPSW
+         EXU      USRINS
+         STCF     USRPSW
+         LCI      0
+         STM,R0   USRREG
+         LCI      0
+         PLM,R0   WRKSTK
+         MTW,1    USRPSW
+         LD,R2    USRMBS
+         MBS,R2   0
+         B        USRXIT
+*
+USRBRS   RES      0
+         STCF     USRPSW
+         LCI      0
+         STM,R0   USRREG
+         LCI      0
+         PLM,R0   WRKSTK
+         LW,R3    USRMSK
+         STS,R2   USRPSW
+         CI,R0    X'1E000'
+         BGE      USRSYS
+*
+USRXIT   RES      0
+         LCI      2
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 *************************
+*                 *                       *
+*                 * SYSTEM CALL PROCESSOR *
+*                 *                       *
+*                 *************************
+*
+*
+*
+ARG      EQU      0
+NULL     EQU      32
+DONE     EQU      0
+WORD     EQU      -1
+FILE     EQU      -2
+*
+SYSMSK   RES      0
+         DATA     X'00000000'
+         DATA     X'00000001'
+         DATA     X'00000003'
+         DATA     X'00000007'
+         DATA     X'0000000F'
+         DATA     X'0000001F'
+         DATA     X'0000003F'
+         DATA     X'0000007F'
+         DATA     X'000000FF'
+         DATA     X'000001FF'
+         DATA     X'000003FF'
+         DATA     X'000007FF'
+         DATA     X'00000FFF'
+         DATA     X'00001FFF'
+         DATA     X'00003FFF'
+         DATA     X'00007FFF'
+         DATA     X'0000FFFF'
+         DATA     X'0001FFFF'
+         DATA     X'0003FFFF'
+         DATA     X'0007FFFF'
+         DATA     X'000FFFFF'
+         DATA     X'001FFFFF'
+         DATA     X'003FFFFF'
+         DATA     X'007FFFFF'
+         DATA     X'00FFFFFF'
+         DATA     X'01FFFFFF'
+         DATA     X'03FFFFFF'
+         DATA     X'07FFFFFF'
+         DATA     X'0FFFFFFF'
+         DATA     X'1FFFFFFF'
+         DATA     X'3FFFFFFF'
+         DATA     X'7FFFFFFF'
+         DATA     X'FFFFFFFF'
+SYSTP0   DATA,1   DONE
+SYSTP1   DATA,1   ARG+32
+         DATA,1   DONE
+SYSTP2   DATA,1   ARG+16
+         DATA,1   ARG+16
+         DATA,1   DONE
+SYSTP3   DATA,1   ARG+8
+         DATA,1   ARG+24
+         DATA,1   DONE
+SYSTP4   DATA,1   ARG+4
+         DATA,1   ARG+4
+         DATA,1   ARG+1
+         DATA,1   NULL+23
+         DATA,1   WORD
+         DATA,1   ARG+2
+         DATA,1   NULL+30
+         DATA,1   FILE
+SYSTP5   DATA,1   ARG+4
+         DATA,1   ARG+4
+         DATA,1   NULL+24
+         DATA,1   WORD
+         DATA,1   ARG+2
+         DATA,1   NULL+3
+         DATA,1   ARG+3
+         DATA,1   NULL+8
+         DATA,1   ARG+2
+         DATA,1   NULL+14
+         DATA,1   WORD
+         DATA,1   ARG+16
+         DATA,1   NULL+16
+         DATA,1   FILE
+SYSTP6   DATA,1   ARG+2
+         DATA,1   NULL+2
+         DATA,1   ARG+1
+         DATA,1   ARG+3             SECURITY
+         DATA,1   ARG+4             TYPE
+         DATA,1   ARG+4             KEYWORD
+         DATA,1   ARG+16            PAGE COUNT
+         DATA,1   DONE
+SYSTP7   DATA,1   WORD              (NO ARGUMENTS IN VALUE CELL)
+         DATA,1   ARG+32
+         DATA,1   WORD
+         DATA,1   ARG+16            LONG QUANTUM
+         DATA,1   ARG+16            SHORT QUANTUM
+         DATA,1   DONE
+SYSTP8   DATA,1   WORD              (NO ARGUMENTS IN VALUE CELL)
+         DATA,1   ARG+32            PROCESS NUMBER
+         DATA,1   ARG+16            JOB NUMBER
+         DATA,1   ARG+16            PROCESS NUMBER
+         DATA,1   WORD
+         DATA,1   ARG+32            KEYWORD
+         DATA,1   DONE
+SYSTP9   DATA,1   WORD              (NO ARGUMENT IN VALUE CELL)
+         DATA,1   ARG+32            PROCESS NUMBER
+         DATA,1   WORD
+         DATA,1   ARG+32            PSW
+         DATA,1   DONE
+SYSTPA   DATA,1   WORD              (NO ARGUMENT IN VALUE CELL)
+         DATA,1   ARG+32            PSW
+         DATA,1   WORD
+         DATA,1   ARG+16            KEYWORD ENABLE BITS
+         DATA,1   ARG+16            FREE PAGES
+         DATA,1   WORD
+         DATA,1   ARG+32            EXECUTION TIME
+         DATA,1   ARG+16            LONG QUANTUM
+         DATA,1   ARG+16            SHORT QUANTUM
+         DATA,1   DONE
+SYSTPB   DATA,1   WORD              (NO ARGUMENT IN VALUE CELL)
+         DATA,1   ARG+32            PSW
+         DATA,1   WORD
+         DATA,1   ARG+16            KEYWORD ENABLE BITS
+         DATA,1   ARG+16            FREE PAGES
+         DATA,1   WORD
+         DATA,1   ARG+32            EXECUTION TIME
+         DATA,1   WORD
+         DATA,1   ARG+16            LONG QUANTUM
+         DATA,1   ARG+16            SHORT QUANTUM
+         DATA,1   WORD
+         DATA,1   ARG+32            JOB NUMBER
+         DATA,1   WORD
+         DATA,1   ARG+32            SYSTEM BIT
+         DATA,1   WORD
+         DATA,1   ARG+32            SECURITY
+         DATA,1   WORD
+         DATA,1   ARG+32            COMPUTATION FILE KEYWORD
+         DATA,1   DONE
+SYSTPC   DATA,1   ARG+8
+         DATA,1   ARG+8
+         DATA,1   ARG+16
+         DATA,1   DONE
+         BOUND    8
+SYSTBS   RES      0
+         TEXT     'ENTER    '
+         TEXT     'CREATE   '
+         TEXT     'COUPLE   '
+         TEXT     'CLOSE    '
+         TEXT     'STATUS   '
+         TEXT     'LOCK     '
+         TEXT     'UNLOCK   '
+         TEXT     'REALADDR'
+         TEXT     'OPEN     '
+         TEXT     'SLEEP    '
+         TEXT     'WAKEUP   '
+SYSTBL   DATA     DA(SYSTBS)-DA(SYSTBL)
+         DATA     G:ENTER
+         DATA     G:CREATE
+         DATA     G:COUPLE
+         DATA     G:CLOSE
+         DATA     G:STATUS
+         DATA     G:LOCK
+         DATA     G:UNLOCK
+         DATA     G:REALAD
+         DATA     G:OPEN
+         DATA     G:SLEEP
+         DATA     G:WAKEUP
+SYSLOC   RES      0
+         DATA     BA(SYSTP5)
+         DATA     BA(SYSTP6)
+         DATA     BA(SYSTPC)
+         DATA     BA(SYSTP1)
+         DATA     BA(SYSTP0)
+         DATA     BA(SYSTP1)
+         DATA     BA(SYSTP1)
+         DATA     BA(SYSTP1)
+         DATA     BA(SYSTP4)
+         DATA     BA(SYSTP0)
+         DATA     BA(SYSTP2)
+SYSFRM   RES      0
+SYSADR   DATA     X'1FFFF'
+         BOUND    8
+SYSPTR   DATA     SYSREG-1
+         DATA,2   10,0
+SYSMBS   DATA     BA(FNMBFR)
+         GEN,8,24 10,BA(SYSREG)+10
+*
+         B        SYSFNM
+         B        SYSWRD
+SYSOPR   B        SYSDON
+*
+CALL     RES      0
+         PSW,R15  WRKSTK
+         LCI      6
+         PSM,R2   WRKSTK
+         BAL,R15  SCNSAV            SAVE STATUS OF SCANNER
+         LI,R0    SYSTBL
+         BAL,R15  TKNEVL            GET TOKEN
+         BNEZ     SYSTKN
+         BAL,R15  SCNRST
+         BAL,R15  EXPEVL
+         STW,R1   SYSBAL
+         LI,R3    0
+         MTW,0    SCNEOL
+         BNEZ     SYSDON
+*
+SYSRDM   RES      0
+         BAL,R15  EXPEVL
+         PSW,R1   SYSVAL
+         BCS,11   SYSERR
+         MTW,0    SCNEOL
+         BNEZ     SYSCHK
+         B        SYSRDM
+*
+SYSTKN   RES      0
+         LW,R0    SYSLOC,R1          GET ADDRESS OF SYSTEM CALL
+         LW,R2    SYSFRM,R1
+*
+SYSCAL   RES      0
+         STW,R0   SYSBAL
+         LD,R0    SYSPTR
+         STD,R0   SYSVAL
+         LI,R3    0
+*
+SYSARG   RES      0
+         LB,R4    0,R2
+         MTW,1    R2
+         STB,R4   R4
+         SAS,R4   -24
+         LW,R4    R4
+         BLEZ     SYSOPR,R4
+         CI,R4    32
+         BLE      SYSEXP
+         AI,R4    -32
+         LI,R1    0
+         B        SYSFIL
+*
+SYSEXP   RES      0
+         BAL,R15  EXPEVL
+*
+SYSFIL   RES      0
+         AND,R1   SYSMSK,R4
+         SAS,R3   0,R4
+         OR,R3    R1
+         B        SYSARG
+*
+SYSWRD   RES      0
+         PSW,R3   SYSVAL
+         LI,R3    0
+         B        SYSARG
+*
+SYSFNM   RES      0
+         PSW,R3   SYSVAL
+         BAL,R15  FNMEVL
+         LD,R2    SYSMBS
+         MBS,R2   0
+         B        SYSCHK
+*
+SYSDON   RES      0
+         PSW,R3   SYSVAL
+*
+SYSCHK   RES      0
+         LW,R0    SYSVAL
+         CI,R0    SYSREG
+         BE       SYSEXU
+         LI,R0    SYSREG+1
+         LW,R1    SYSADR
+         STS,R0   SYSREG
+*
+SYSEXU   RES      0
+         LW,R13   XECMVI
+         BAL,R14  G:MOVEIO
+         LW,R13   XECMVI
+         LW,R0    USRMCT
+         STB,R0   R13
+         BAL,R14  G:MOVEIO
+         LW,R13   SYSREG
+         BAL,R14  *SYSBAL
+         LW,R4    R13
+         LD,R2    USRMBS
+         MBS,R2   0
+         LI,R1    BA(MSGSYS)
+         BAL,R15  WRTSEG
+         LW,R0    R4
+         LI,R1    8
+         BAL,R15  WRTHEX
+         BAL,R15  WRTOUT
+         LCI      6
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         B        *R15
+*
+SYSERR   RES      0
+         LI,R1    BA(MSGARG)
+         B        ERRXIT
+*
+         PAGE
+*
+*
+*
+*                 **************************
+*                 *                        *
+*                 * SERVICE CALL PROCESSOR *
+*                 *                        *
+*                 **************************
+*
+*
+*
+SVCSCN   RES      0
+         PSW,R15  WRKSTK
+         LCI      4
+         PSM,R2   WRKSTK
+         LI,R0    0
+         STW,R0   SVCSWT
+         LI,R13   513
+         LI,R0    PDPPAG
+         SAS,R0   -9
+         STH,R0   R13
+         LI,R0    KYWCMP
+         STB,R0   R13
+         BAL,R14  G:COUPLE          GET PDP FROM COMPUTATION FILE
+         BNEZ     $
+         LI,R2    511
+*
+SVCCHK   RES      0
+         LB,R4    PDPPAG,R2
+         LI,R5    1
+         CS,R4    R5                CHECK FOR ACTIVE PROCESS
+         BNE      SVCBDR
+         LI,R5    2
+         CS,R4    R5                ACTIVE... CHECK FOR BREAK
+         BNE      SVCREQ
+         MTW,1    SVCSWT
+         LI,R1    BA(MSGPRC)
+         BAL,R15  WRTSEG
+         LW,R0    R2
+         LI,R1    2
+         BAL,R15  WRTHEX
+         LI,R1    BA(MSGPBR)
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+*
+SVCREQ   RES      0
+         LI,R5    4
+         CS,R4    R5                CHECK FOR SERVICE REQUEST
+         BNE      SVCKIL
+         MTW,1    SVCSWT
+         LI,R1    BA(MSGPRC)
+         BAL,R15  WRTSEG
+         LW,R0    R2
+         LI,R1    2
+         BAL,R15  WRTHEX
+         LI,R1    BA(MSGREQ)
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+*
+SVCKIL   RES      0
+         LI,R5    8
+         CS,R4    R5                CHECK FOR KILL
+         BNE      SVCBDR
+         MTW,1    SVCSWT
+         LW,R13   R2
+         BAL,R14  G:KLPRC
+         LI,R1    BA(MSGPRC)
+         BAL,R15  WRTSEG
+         LW,R0    R2
+         LI,R1    2
+         BAL,R15  WRTHEX
+         LI,R1    BA(MSGKIL)
+         BAL,R15  WRTSEG
+         BAL,R15  WRTOUT
+*
+SVCBDR   RES      0
+         BDR,R2   SVCCHK
+         MTW,0    SVCSWT
+         BEZ      SVCXIT
+         LW,R13   G:PRCNUM
+         BAL,R14  G:ASSINP
+*
+SVCXIT   RES      0
+         LCI      4
+         PLM,R2   WRKSTK
+         PLW,R15  WRKSTK
+         LW,R0    SVCSWT
+         B        *R15
+*
+         PAGE
+*
+*
+*
+*                 ******************
+*                 *                *
+*                 * EXIT PROCESSOR *
+*                 *                *
+*                 ******************
+*
+*
+*
+EXIT     RES      0
+         BAL,R14  G:FINPRC
+*
+         PAGE
+*
+*
+*
+*                 *******************
+*                 *                 *
+*                 * FORTRAN LINKAGE *
+*                 *                 *
+*                 *******************
+*
+*
+*
+FRTPUB   OPEN_    KYWLIB,KYWLIB,0,FRTOPN+1,1
+FRTOPN   OPEN_    KYWRTD,KYWLIB,0,$+1,1
+         TEXT     '   FORTLIB   '
+*
+*  ENTRY POINT TO REPORT SUB-PROCESSOR ABORT LOCATIONS:
+*
+FRTENT   RES      0
+         MTW,R1   FRTSWT
+         STW,R13  FRTABR
+         STW,R12  FRTABR+1
+         B        *R14
+*
+*  ENTRY POINT TO EXIT WITH COMMAND:
+*
+FRTMSG   RES      0
+         LI,R0    1
+         STW,R0   MSGSWT            SET EXIT WITH COMMAND SWITCH
+         LB,R0    R13
+         STW,R0   SCNCNT
+         LD,R2    SCNMV1
+         STW,R13  R2
+         MBS,R2   0                 FILL INTERNAL MESSAGE BUFFER
+*
+*  ENTRY POINT FOR PROGRAM EXIT:
+*
+FRTEXT   RES      0
+         BAL,R15  BRKCHK            RESET ALL BREAK-POINT CONTENTSK
+         LI,R1    BA(MSGEXT)
+         B        ERRXIT
+*
+*  ENTRY POINT TO LOAD FORTLIB:
+*
+FRTLIB   RES      0
+         STCF     USRPSW            SAVE CONDITION CODE FOR GF:PIN
+         LCI      0
+         STM,R0   USRREG            SAVE REGISTERS
+         LI,R0    FCB:USED
+         STW,R0   FCBTYPE+2         ASSIGN KEYWORD 2 TO LIBRARY
+         LI,R5    KYWLIB            (5) <== KEYWORD FOR LIBRARY
+         LW,R13   FRTOPN
+         BAL,R14  G:OPEN            OPEN UP FORTRAN LIBRARY
+         BEZ      LIBRARY           GO AHEAD AND LOAD LIBRARY
+         LW,R13   UTLPUB
+         LI,R0    KYWLIB
+         SLS,R0   24
+         AW,R13   R0                SET KEYWORD FOR LIBRARY
+         BAL,R14  G:OPEN            OPEN UP PUBLIC
+         BNEZ     FRTLB1
+         LW,R13   FRTPUB
+         BAL,R14  G:OPEN            TRY AGAIN FOR LIBRARY
+         BEZ      LIBRARY
+*
+FRTLB1   RES      0
+         LI,R1    BA(MSGLIB)
+         B        ERRXIT            CANNOT OPEN NAMED FILE
+*
+         RES      SCRPG1+X'11FC'-$-X'200'
+*
+         B        FRTLIB            INITIALIZE LIBRARY
+         B        FRTMSG            EXIT WITH COMMAND (COUNT,ADDRESS) IN 13
+         B        FRTEXT            EXIT
+         B        FRTENT            RESET USER ABORT AND INTERRUPT LOCAT
+IONS
+*
+         PAGE
+*
+*        HIGH LIMIT FOR DUMP
+*
+HICORE   EQU      $$
+*
+*        DUMP SHOULD BE:
+*
+*                 D(MASTER)200,HICORE
+*
+*
+         END      BTSBGN
