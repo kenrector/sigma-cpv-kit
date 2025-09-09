@@ -1,8 +1,8 @@
 This is an unlabeled tape known as xpl-compiler-890799-A00, submitted to 
 the XDS User Group Library by Lawrence Livermore Laboratory.  It includes
-several files of source code for an XPL compiler ported to the GORDO OS,
-an assembly language file with the GORDO user interface file (MASTER) and 
-a memory image of the GORDO OS, including the A-System.
+several files of source code for a GORDO version of the XPL compiler developed at lawrence Livermore Labs,
+an assembly language file for the GORDO user interface (MASTER) and 
+a binary image of the compiler.
 
 A GORDO reference manual is included.
 
