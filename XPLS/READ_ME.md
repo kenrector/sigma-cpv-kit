@@ -1,8 +1,10 @@
+# XPL/S
+
 29d0.tap is an FSAVE tape containing source code, JCL and LMN for the XPL/S compiler developed at University of Washington in 1974.
 
 ## Documentation
 
-Documentation is two papers from University of Washington library archives describing development of XPL/s and the language.  The documentation files are scanned images from UW and a PDF produced by  LyX of one of them.  The LyX pdf was made to provide a searchable text reference manual.
+Documentation is two papers from University of Washington library archives describing development of XPL/S and the language.  The documentation files are scanned images from UW and a PDF produced by LyX of one of them.  The LyX pdf was made to provide a searchable text reference manual.
 
 ## Installing XPL/S on CP-V:  
 
@@ -20,7 +22,7 @@ A LMN for XPLS was installed from the tape.  You can use it as is, or run $BUILD
 to compile and link a load module and generate the .XPLSBO and .XPLSLO files.
 
 
-## Bootstrapping XPL/s from paper listings.
+## Bootstrapping XPL/S from paper listings.
 
 This C00 version of the XPL/S compiler was developed at the University of Washington between 1972 and 1974.  The compiler source code was submitted to the Xerox Programming Library under catalog number 890923.  This tape is available but has been unreadable with the available equipment.
 
